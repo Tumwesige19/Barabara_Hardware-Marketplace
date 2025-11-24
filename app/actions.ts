@@ -141,7 +141,7 @@ export async function createMessage(data: {
 
 export async function getOrders(search?: string, status?: string, startDate?: string, endDate?: string, paymentMethod?: string) {
     try {
-        const where: Prisma.OrderWhereInput = {};
+        const where: any = {};
 
         if (search) {
             where.OR = [
@@ -155,14 +155,19 @@ export async function getOrders(search?: string, status?: string, startDate?: st
             where.status = status;
         }
 
+        const dateFilter: any = {};
         if (startDate) {
-            where.date = { gte: new Date(startDate) };
+            dateFilter.gte = new Date(startDate);
         }
 
         if (endDate) {
             const end = new Date(endDate);
             end.setDate(end.getDate() + 1);
-            where.date = { ...where.date, lt: end };
+            dateFilter.lt = end;
+        }
+
+        if (Object.keys(dateFilter).length > 0) {
+            where.date = dateFilter;
         }
 
         if (paymentMethod && paymentMethod !== 'All') {
@@ -174,7 +179,7 @@ export async function getOrders(search?: string, status?: string, startDate?: st
             orderBy: { date: 'desc' }
         });
 
-        return orders.map(order => ({
+        return orders.map((order: any) => ({
             ...order,
             customer_name: order.customerName,
             payment_method: order.paymentMethod,
@@ -194,7 +199,7 @@ export async function getMessages() {
             orderBy: { date: 'desc' }
         });
 
-        return messages.map(msg => ({
+        return messages.map((msg: any) => ({
             id: msg.id,
             senderName: msg.senderName,
             email: msg.email,
@@ -253,7 +258,7 @@ export async function getUserOrders(userId: string) {
             orderBy: { date: 'desc' }
         });
 
-        return orders.map(order => ({
+        return orders.map((order: any) => ({
             ...order,
             customer_name: order.customerName,
             payment_method: order.paymentMethod,
@@ -346,7 +351,7 @@ export async function getAnalyticsData() {
             'Cancelled': { color: '#EF4444', value: 0 },
         };
 
-        statusCounts.forEach(item => {
+        statusCounts.forEach((item: any) => {
             if (statusMap[item.status as keyof typeof statusMap]) {
                 statusMap[item.status as keyof typeof statusMap].value = item._count.status;
             }
