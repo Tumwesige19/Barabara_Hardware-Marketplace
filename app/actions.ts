@@ -1,7 +1,8 @@
 'use server';
 
 import { revalidatePath } from 'next/cache';
-import db, { generateId } from '@/lib/db';
+import prisma, { generateId } from '@/lib/db';
+import { Prisma } from '@prisma/client';
 
 // Order item interface
 export interface OrderItem {
@@ -38,11 +39,11 @@ export async function createOrder(data: {
 
         // SMART FIX: Verify user exists, otherwise find by email
         let validUserId = data.userId;
-        const userExists = db.prepare('SELECT id FROM User WHERE id = ?').get(data.userId);
+        const userExists = await prisma.user.findUnique({ where: { id: data.userId } });
 
         if (!userExists) {
             console.log(`User ID ${data.userId} not found. Attempting lookup by email: ${data.customerEmail}`);
-            const userByEmail = db.prepare('SELECT id FROM User WHERE email = ?').get(data.customerEmail) as { id: string } | undefined;
+            const userByEmail = await prisma.user.findUnique({ where: { email: data.customerEmail } });
 
             if (userByEmail) {
                 console.log(`Found correct user ID: ${userByEmail.id}`);
@@ -54,24 +55,22 @@ export async function createOrder(data: {
                 const hashedPassword = '$2a$10$abcdefghijklmnopqrstuvwxyz'; // Dummy hash for auto-created users
 
                 try {
-                    db.prepare(`
-                        INSERT INTO "User" (id, email, name, password, createdAt, updatedAt)
-                        VALUES (?, ?, ?, ?, ?, ?)
-                    `).run(
-                        newUserId,
-                        data.customerEmail || `guest_${newUserId}@example.com`, // Fallback if email is missing
-                        data.customerName || 'Guest Customer',
-                        hashedPassword,
-                        new Date().toISOString(),
-                        new Date().toISOString()
-                    );
+                    await prisma.user.create({
+                        data: {
+                            id: newUserId,
+                            email: data.customerEmail || `guest_${newUserId}@example.com`,
+                            name: data.customerName || 'Guest Customer',
+                            password: hashedPassword,
+                            phone: data.phone || null,
+                        }
+                    });
 
                     validUserId = newUserId;
                     console.log(`Successfully created new user: ${validUserId}`);
                 } catch (createError) {
                     console.error('Failed to auto-create user:', createError);
                     // Fallback to a known existing user if creation fails (last resort)
-                    const anyUser = db.prepare('SELECT id FROM User LIMIT 1').get() as { id: string };
+                    const anyUser = await prisma.user.findFirst();
                     if (anyUser) {
                         console.log(`Fallback to existing user: ${anyUser.id}`);
                         validUserId = anyUser.id;
@@ -82,32 +81,21 @@ export async function createOrder(data: {
             }
         }
 
-        const stmt = db.prepare(`
-            INSERT INTO "Order" (
-                id, customerName, items, total, paymentMethod, userId, 
-                phone, shippingAddress, city, postalCode, status, 
-                date, updatedAt, createdAt
-            )
-            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 'Pending', ?, ?, ?)
-        `);
-
-        const now = new Date().toISOString();
-
-        stmt.run(
-            orderId,
-            data.customerName,
-            JSON.stringify(data.items),
-            data.total,
-            data.paymentMethod,
-            validUserId, // Use the validated/corrected User ID
-            data.phone,
-            data.shippingAddress,
-            data.city,
-            data.postalCode,
-            now,
-            now,
-            now
-        );
+        await prisma.order.create({
+            data: {
+                id: orderId,
+                customerName: data.customerName,
+                items: JSON.stringify(data.items),
+                total: data.total,
+                paymentMethod: data.paymentMethod,
+                userId: validUserId,
+                phone: data.phone,
+                shippingAddress: data.shippingAddress,
+                city: data.city,
+                postalCode: data.postalCode,
+                status: 'Pending',
+            }
+        });
 
         revalidatePath('/admin/orders');
         revalidatePath('/admin');
@@ -131,12 +119,16 @@ export async function createMessage(data: {
 }) {
     try {
         const messageId = generateId();
-        const stmt = db.prepare(`
-            INSERT INTO "Message"(id, senderName, email, subject, message, status)
-            VALUES(?, ?, ?, ?, ?, 'Unread')
-        `);
-
-        stmt.run(messageId, data.senderName, data.email, data.subject, data.message);
+        await prisma.message.create({
+            data: {
+                id: messageId,
+                senderName: data.senderName,
+                email: data.email,
+                subject: data.subject,
+                message: data.message,
+                status: 'Unread',
+            }
+        });
 
         revalidatePath('/admin/messages');
         revalidatePath('/admin');
@@ -149,45 +141,38 @@ export async function createMessage(data: {
 
 export async function getOrders(search?: string, status?: string, startDate?: string, endDate?: string, paymentMethod?: string) {
     try {
-        let query = 'SELECT * FROM "Order"';
-        const params: any[] = [];
-        const conditions: string[] = [];
+        const where: Prisma.OrderWhereInput = {};
 
         if (search) {
-            conditions.push('(id LIKE ? OR customerName LIKE ? OR phone LIKE ?)');
-            const searchTerm = `%${search}%`;
-            params.push(searchTerm, searchTerm, searchTerm);
+            where.OR = [
+                { id: { contains: search, mode: 'insensitive' } },
+                { customerName: { contains: search, mode: 'insensitive' } },
+                { phone: { contains: search, mode: 'insensitive' } }
+            ];
         }
 
         if (status && status !== 'All') {
-            conditions.push('status = ?');
-            params.push(status);
+            where.status = status;
         }
 
         if (startDate) {
-            conditions.push('date >= ?');
-            params.push(startDate);
+            where.date = { gte: new Date(startDate) };
         }
 
         if (endDate) {
             const end = new Date(endDate);
             end.setDate(end.getDate() + 1);
-            conditions.push('date < ?');
-            params.push(end.toISOString().split('T')[0]);
+            where.date = { ...where.date, lt: end };
         }
 
         if (paymentMethod && paymentMethod !== 'All') {
-            conditions.push('paymentMethod LIKE ?');
-            params.push(`%${paymentMethod}%`);
+            where.paymentMethod = { contains: paymentMethod, mode: 'insensitive' };
         }
 
-        if (conditions.length > 0) {
-            query += ' WHERE ' + conditions.join(' AND ');
-        }
-
-        query += ' ORDER BY date DESC';
-
-        const orders = db.prepare(query).all(...params) as any[];
+        const orders = await prisma.order.findMany({
+            where,
+            orderBy: { date: 'desc' }
+        });
 
         return orders.map(order => ({
             ...order,
@@ -205,9 +190,9 @@ export async function getOrders(search?: string, status?: string, startDate?: st
 
 export async function getMessages() {
     try {
-        const messages = db.prepare(`
-            SELECT * FROM "Message" ORDER BY date DESC
-        `).all() as any[];
+        const messages = await prisma.message.findMany({
+            orderBy: { date: 'desc' }
+        });
 
         return messages.map(msg => ({
             id: msg.id,
@@ -226,32 +211,28 @@ export async function getMessages() {
 
 export async function getDashboardStats() {
     try {
-        const totalRevenue = db.prepare(`
-            SELECT SUM(total) as revenue FROM "Order"
-        `).get() as any;
+        const totalRevenue = await prisma.order.aggregate({
+            _sum: { total: true }
+        });
 
-        const pendingOrders = db.prepare(`
-            SELECT COUNT(*) as count FROM "Order" WHERE status = 'Pending'
-        `).get() as any;
+        const pendingOrders = await prisma.order.count({
+            where: { status: 'Pending' }
+        });
 
-        const totalOrders = db.prepare(`
-            SELECT COUNT(*) as count FROM "Order"
-        `).get() as any;
+        const totalOrders = await prisma.order.count();
 
-        const unreadMessages = db.prepare(`
-            SELECT COUNT(*) as count FROM "Message" WHERE status = 'Unread'
-        `).get() as any;
+        const unreadMessages = await prisma.message.count({
+            where: { status: 'Unread' }
+        });
 
-        const totalMessages = db.prepare(`
-            SELECT COUNT(*) as count FROM "Message"
-        `).get() as any;
+        const totalMessages = await prisma.message.count();
 
         return {
-            totalRevenue: totalRevenue?.revenue || 0,
-            pendingOrders: pendingOrders?.count || 0,
-            totalOrders: totalOrders?.count || 0,
-            unreadMessages: unreadMessages?.count || 0,
-            totalMessages: totalMessages?.count || 0,
+            totalRevenue: totalRevenue._sum.total || 0,
+            pendingOrders,
+            totalOrders,
+            unreadMessages,
+            totalMessages,
         };
     } catch (error) {
         console.error('Failed to fetch dashboard stats:', error);
@@ -267,9 +248,10 @@ export async function getDashboardStats() {
 
 export async function getUserOrders(userId: string) {
     try {
-        const orders = db.prepare(`
-            SELECT * FROM "Order" WHERE userId = ? ORDER BY date DESC
-        `).all(userId) as any[];
+        const orders = await prisma.order.findMany({
+            where: { userId },
+            orderBy: { date: 'desc' }
+        });
 
         return orders.map(order => ({
             ...order,
@@ -287,17 +269,17 @@ export async function getUserOrders(userId: string) {
 
 export async function updateOrderStatus(orderId: string, newStatus: string) {
     try {
-        const stmt = db.prepare(`
-            UPDATE "Order" SET status = ?, updatedAt = ? WHERE id = ?
-        `);
-        stmt.run(newStatus, new Date().toISOString(), orderId);
+        await prisma.order.update({
+            where: { id: orderId },
+            data: { status: newStatus }
+        });
 
-        const order = db.prepare('SELECT * FROM "Order" WHERE id = ?').get(orderId) as any;
+        const order = await prisma.order.findUnique({ where: { id: orderId } });
 
         if (order && (newStatus === 'Shipped' || newStatus === 'Delivered')) {
             try {
                 const { sendOrderStatusEmail } = await import('@/lib/email');
-                const user = db.prepare('SELECT email FROM "User" WHERE id = ?').get(order.userId) as any;
+                const user = await prisma.user.findUnique({ where: { id: order.userId } });
 
                 if (user && user.email) {
                     await sendOrderStatusEmail(user.email, order.customerName, order.id, newStatus);
@@ -320,7 +302,7 @@ export async function updateOrderStatus(orderId: string, newStatus: string) {
 
 export async function deleteOrder(orderId: string) {
     try {
-        db.prepare('DELETE FROM "Order" WHERE id = ?').run(orderId);
+        await prisma.order.delete({ where: { id: orderId } });
         revalidatePath('/admin/orders');
         revalidatePath('/admin/analytics');
         revalidatePath('/admin');
@@ -351,11 +333,10 @@ export async function getAnalyticsData() {
             });
         }
 
-        const statusCounts = db.prepare(`
-            SELECT status, COUNT(*) as count 
-            FROM "Order" 
-            GROUP BY status
-        `).all() as { status: string, count: number }[];
+        const statusCounts = await prisma.order.groupBy({
+            by: ['status'],
+            _count: { status: true }
+        });
 
         const statusMap = {
             'Pending': { color: '#EAB308', value: 0 },
@@ -367,7 +348,7 @@ export async function getAnalyticsData() {
 
         statusCounts.forEach(item => {
             if (statusMap[item.status as keyof typeof statusMap]) {
-                statusMap[item.status as keyof typeof statusMap].value = item.count;
+                statusMap[item.status as keyof typeof statusMap].value = item._count.status;
             }
         });
 
