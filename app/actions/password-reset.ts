@@ -1,12 +1,14 @@
 'use server';
 
-import db, { generateId } from '@/lib/db';
+import prisma, { generateId } from '@/lib/db';
 import { hashPassword } from '@/lib/auth';
 
 export async function requestPasswordReset(email: string) {
     try {
         // Check if user exists
-        const user = db.prepare('SELECT * FROM users WHERE email = ?').get(email) as any;
+        const user = await prisma.user.findUnique({
+            where: { email }
+        });
 
         if (!user) {
             // Don't reveal if email exists or not for security
@@ -18,17 +20,24 @@ export async function requestPasswordReset(email: string) {
 
         // Generate 5-digit code
         const token = Math.floor(10000 + Math.random() * 90000).toString();
-        const tokenId = generateId();
         const expiresAt = new Date(Date.now() + 60 * 60 * 1000); // 1 hour from now
 
         // Delete any existing unused tokens for this user
-        db.prepare('DELETE FROM password_reset_tokens WHERE user_id = ? AND used = 0').run(user.id);
+        await prisma.passwordResetToken.deleteMany({
+            where: {
+                userId: user.id,
+                used: false
+            }
+        });
 
         // Store token
-        db.prepare(`
-            INSERT INTO password_reset_tokens (id, user_id, token, expires_at)
-            VALUES (?, ?, ?, ?)
-        `).run(tokenId, user.id, token, expiresAt.toISOString());
+        await prisma.passwordResetToken.create({
+            data: {
+                userId: user.id,
+                token,
+                expiresAt
+            }
+        });
 
         // ALWAYS show token on screen since email isn't configured
         // This makes it easier for development and when email service is unavailable
@@ -45,16 +54,21 @@ export async function requestPasswordReset(email: string) {
 
 export async function verifyResetToken(token: string) {
     try {
-        const resetToken = db.prepare(`
-            SELECT * FROM password_reset_tokens 
-            WHERE token = ? AND used = 0 AND expires_at > datetime('now')
-        `).get(token) as any;
+        const resetToken = await prisma.passwordResetToken.findFirst({
+            where: {
+                token,
+                used: false,
+                expiresAt: {
+                    gt: new Date()
+                }
+            }
+        });
 
         if (!resetToken) {
             return { valid: false, error: 'Invalid or expired code' };
         }
 
-        return { valid: true, userId: resetToken.user_id };
+        return { valid: true, userId: resetToken.userId };
     } catch (error) {
         console.error('Failed to verify token:', error);
         return { valid: false, error: 'Failed to verify code' };
@@ -73,11 +87,16 @@ export async function resetPassword(token: string, newPassword: string) {
         const hashedPassword = await hashPassword(newPassword);
 
         // Update user password
-        db.prepare('UPDATE users SET password = ?, updated_at = CURRENT_TIMESTAMP WHERE id = ?')
-            .run(hashedPassword, verification.userId);
+        await prisma.user.update({
+            where: { id: verification.userId },
+            data: { password: hashedPassword }
+        });
 
         // Mark token as used
-        db.prepare('UPDATE password_reset_tokens SET used = 1 WHERE token = ?').run(token);
+        await prisma.passwordResetToken.updateMany({
+            where: { token },
+            data: { used: true }
+        });
 
         return { success: true, message: 'Password reset successfully' };
     } catch (error) {

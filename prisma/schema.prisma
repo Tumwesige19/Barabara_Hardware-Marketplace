@@ -19,6 +19,7 @@ model User {
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
   orders    Order[]
+  passwordResetTokens PasswordResetToken[]
 }
 
 model Order {
@@ -49,4 +50,14 @@ model Message {
   status     String   @default("Unread") // Unread, Read
   createdAt  DateTime @default(now())
   updatedAt  DateTime @updatedAt
+}
+
+model PasswordResetToken {
+  id        String   @id @default(cuid())
+  userId    String
+  user      User     @relation(fields: [userId], references: [id])
+  token     String   @unique
+  used      Boolean  @default(false)
+  expiresAt DateTime
+  createdAt DateTime @default(now())
 }
