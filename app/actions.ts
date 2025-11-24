@@ -1,8 +1,8 @@
 'use server';
 
 import { revalidatePath } from 'next/cache';
-import prisma, { generateId } from '@/lib/db';
-import { Prisma } from '@prisma/client';
+import db, { generateId } from '@/lib/db';
+import { CreateOrderData, CreateUserData } from '@/lib/db-adapter';
 
 // Order item interface
 export interface OrderItem {
@@ -39,11 +39,11 @@ export async function createOrder(data: {
 
         // SMART FIX: Verify user exists, otherwise find by email
         let validUserId = data.userId;
-        const userExists = await prisma.user.findUnique({ where: { id: data.userId } });
+        const userExists = await db.findUserById(data.userId);
 
         if (!userExists) {
             console.log(`User ID ${data.userId} not found. Attempting lookup by email: ${data.customerEmail}`);
-            const userByEmail = await prisma.user.findUnique({ where: { email: data.customerEmail } });
+            const userByEmail = await db.findUserByEmail(data.customerEmail);
 
             if (userByEmail) {
                 console.log(`Found correct user ID: ${userByEmail.id}`);
@@ -53,24 +53,27 @@ export async function createOrder(data: {
                 console.log(`User not found by email ${data.customerEmail}. Creating new user record...`);
                 const newUserId = `user_${Date.now()}`;
                 const hashedPassword = '$2a$10$abcdefghijklmnopqrstuvwxyz'; // Dummy hash for auto-created users
+                const now = new Date().toISOString();
 
                 try {
-                    await prisma.user.create({
-                        data: {
-                            id: newUserId,
-                            email: data.customerEmail || `guest_${newUserId}@example.com`,
-                            name: data.customerName || 'Guest Customer',
-                            password: hashedPassword,
-                            phone: data.phone || null,
-                        }
-                    });
+                    const userData: CreateUserData = {
+                        id: newUserId,
+                        email: data.customerEmail || `guest_${newUserId}@example.com`,
+                        name: data.customerName || 'Guest Customer',
+                        password: hashedPassword,
+                        phone: data.phone || null,
+                        createdAt: now,
+                        updatedAt: now
+                    };
+
+                    await db.createUser(userData);
 
                     validUserId = newUserId;
                     console.log(`Successfully created new user: ${validUserId}`);
                 } catch (createError) {
                     console.error('Failed to auto-create user:', createError);
                     // Fallback to a known existing user if creation fails (last resort)
-                    const anyUser = await prisma.user.findFirst();
+                    const anyUser = await db.findFirstUser();
                     if (anyUser) {
                         console.log(`Fallback to existing user: ${anyUser.id}`);
                         validUserId = anyUser.id;
@@ -81,21 +84,25 @@ export async function createOrder(data: {
             }
         }
 
-        await prisma.order.create({
-            data: {
-                id: orderId,
-                customerName: data.customerName,
-                items: JSON.stringify(data.items),
-                total: data.total,
-                paymentMethod: data.paymentMethod,
-                userId: validUserId,
-                phone: data.phone,
-                shippingAddress: data.shippingAddress,
-                city: data.city,
-                postalCode: data.postalCode,
-                status: 'Pending',
-            }
-        });
+        const now = new Date().toISOString();
+        const orderData: CreateOrderData = {
+            id: orderId,
+            customerName: data.customerName,
+            items: JSON.stringify(data.items),
+            total: data.total,
+            status: 'Pending',
+            date: now,
+            paymentMethod: data.paymentMethod,
+            userId: validUserId,
+            phone: data.phone,
+            shippingAddress: data.shippingAddress,
+            city: data.city,
+            postalCode: data.postalCode,
+            createdAt: now,
+            updatedAt: now
+        };
+
+        await db.createOrder(orderData);
 
         revalidatePath('/admin/orders');
         revalidatePath('/admin');
@@ -119,15 +126,18 @@ export async function createMessage(data: {
 }) {
     try {
         const messageId = generateId();
-        await prisma.message.create({
-            data: {
-                id: messageId,
-                senderName: data.senderName,
-                email: data.email,
-                subject: data.subject,
-                message: data.message,
-                status: 'Unread',
-            }
+        const now = new Date().toISOString();
+
+        await db.createMessage({
+            id: messageId,
+            senderName: data.senderName,
+            email: data.email,
+            subject: data.subject,
+            message: data.message,
+            date: now,
+            status: 'Unread',
+            createdAt: now,
+            updatedAt: now
         });
 
         revalidatePath('/admin/messages');
@@ -141,43 +151,7 @@ export async function createMessage(data: {
 
 export async function getOrders(search?: string, status?: string, startDate?: string, endDate?: string, paymentMethod?: string) {
     try {
-        const where: any = {};
-
-        if (search) {
-            where.OR = [
-                { id: { contains: search, mode: 'insensitive' } },
-                { customerName: { contains: search, mode: 'insensitive' } },
-                { phone: { contains: search, mode: 'insensitive' } }
-            ];
-        }
-
-        if (status && status !== 'All') {
-            where.status = status;
-        }
-
-        const dateFilter: any = {};
-        if (startDate) {
-            dateFilter.gte = new Date(startDate);
-        }
-
-        if (endDate) {
-            const end = new Date(endDate);
-            end.setDate(end.getDate() + 1);
-            dateFilter.lt = end;
-        }
-
-        if (Object.keys(dateFilter).length > 0) {
-            where.date = dateFilter;
-        }
-
-        if (paymentMethod && paymentMethod !== 'All') {
-            where.paymentMethod = { contains: paymentMethod, mode: 'insensitive' };
-        }
-
-        const orders = await prisma.order.findMany({
-            where,
-            orderBy: { date: 'desc' }
-        });
+        const orders = await db.getOrders(search, status, startDate, endDate, paymentMethod);
 
         return orders.map((order: any) => ({
             ...order,
@@ -185,7 +159,7 @@ export async function getOrders(search?: string, status?: string, startDate?: st
             payment_method: order.paymentMethod,
             shipping_address: order.shippingAddress,
             postal_code: order.postalCode,
-            items: JSON.parse(order.items),
+            items: typeof order.items === 'string' ? JSON.parse(order.items) : order.items,
         }));
     } catch (error) {
         console.error('Failed to fetch orders:', error);
@@ -195,9 +169,7 @@ export async function getOrders(search?: string, status?: string, startDate?: st
 
 export async function getMessages() {
     try {
-        const messages = await prisma.message.findMany({
-            orderBy: { date: 'desc' }
-        });
+        const messages = await db.getMessages();
 
         return messages.map((msg: any) => ({
             id: msg.id,
@@ -216,29 +188,7 @@ export async function getMessages() {
 
 export async function getDashboardStats() {
     try {
-        const totalRevenue = await prisma.order.aggregate({
-            _sum: { total: true }
-        });
-
-        const pendingOrders = await prisma.order.count({
-            where: { status: 'Pending' }
-        });
-
-        const totalOrders = await prisma.order.count();
-
-        const unreadMessages = await prisma.message.count({
-            where: { status: 'Unread' }
-        });
-
-        const totalMessages = await prisma.message.count();
-
-        return {
-            totalRevenue: totalRevenue._sum.total || 0,
-            pendingOrders,
-            totalOrders,
-            unreadMessages,
-            totalMessages,
-        };
+        return await db.getDashboardStats();
     } catch (error) {
         console.error('Failed to fetch dashboard stats:', error);
         return {
@@ -253,10 +203,7 @@ export async function getDashboardStats() {
 
 export async function getUserOrders(userId: string) {
     try {
-        const orders = await prisma.order.findMany({
-            where: { userId },
-            orderBy: { date: 'desc' }
-        });
+        const orders = await db.getUserOrders(userId);
 
         return orders.map((order: any) => ({
             ...order,
@@ -264,7 +211,7 @@ export async function getUserOrders(userId: string) {
             payment_method: order.paymentMethod,
             shipping_address: order.shippingAddress,
             postal_code: order.postalCode,
-            items: JSON.parse(order.items),
+            items: typeof order.items === 'string' ? JSON.parse(order.items) : order.items,
         }));
     } catch (error) {
         console.error('Failed to fetch user orders:', error);
@@ -274,17 +221,15 @@ export async function getUserOrders(userId: string) {
 
 export async function updateOrderStatus(orderId: string, newStatus: string) {
     try {
-        await prisma.order.update({
-            where: { id: orderId },
-            data: { status: newStatus }
-        });
+        const now = new Date().toISOString();
+        await db.updateOrderStatus(orderId, newStatus, now);
 
-        const order = await prisma.order.findUnique({ where: { id: orderId } });
+        const order = await db.getOrderById(orderId);
 
         if (order && (newStatus === 'Shipped' || newStatus === 'Delivered')) {
             try {
                 const { sendOrderStatusEmail } = await import('@/lib/email');
-                const user = await prisma.user.findUnique({ where: { id: order.userId } });
+                const user = await db.findUserById(order.userId);
 
                 if (user && user.email) {
                     await sendOrderStatusEmail(user.email, order.customerName, order.id, newStatus);
@@ -307,7 +252,7 @@ export async function updateOrderStatus(orderId: string, newStatus: string) {
 
 export async function deleteOrder(orderId: string) {
     try {
-        await prisma.order.delete({ where: { id: orderId } });
+        await db.deleteOrder(orderId);
         revalidatePath('/admin/orders');
         revalidatePath('/admin/analytics');
         revalidatePath('/admin');
@@ -338,12 +283,9 @@ export async function getAnalyticsData() {
             });
         }
 
-        const statusCounts = await prisma.order.groupBy({
-            by: ['status'],
-            _count: { status: true }
-        });
+        const { statusCounts } = await db.getAnalyticsData();
 
-        const statusMap = {
+        const statusMap: any = {
             'Pending': { color: '#EAB308', value: 0 },
             'Processing': { color: '#3B82F6', value: 0 },
             'Shipped': { color: '#A855F7', value: 0 },
@@ -352,12 +294,12 @@ export async function getAnalyticsData() {
         };
 
         statusCounts.forEach((item: any) => {
-            if (statusMap[item.status as keyof typeof statusMap]) {
-                statusMap[item.status as keyof typeof statusMap].value = item._count.status;
+            if (statusMap[item.status]) {
+                statusMap[item.status].value = item.count;
             }
         });
 
-        const statusStats = Object.entries(statusMap).map(([name, data]) => ({
+        const statusStats = Object.entries(statusMap).map(([name, data]: [string, any]) => ({
             name,
             value: data.value,
             color: data.color
