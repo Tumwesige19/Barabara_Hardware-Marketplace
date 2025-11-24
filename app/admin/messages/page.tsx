@@ -34,7 +34,7 @@ export default async function AdminMessagesPage() {
                                     </div>
                                 </div>
                                 <div className="text-sm text-muted-foreground whitespace-nowrap">
-                                    {msg.date}
+                                    {new Date(msg.date).toLocaleDateString()}
                                 </div>
                             </div>
                             <div className="pl-14">
