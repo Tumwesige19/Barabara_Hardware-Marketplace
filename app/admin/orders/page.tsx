@@ -1,3 +1,4 @@
+import { Suspense } from 'react';
 import { getOrders } from '@/app/actions';
 import { formatCurrency } from '@/lib/utils';
 import { OrderActions } from './OrderActions';
@@ -23,9 +24,11 @@ export default async function AdminOrdersPage({
                 <p className="text-muted-foreground">View and manage all customer orders</p>
             </div>
 
-            <OrderFilters />
+            <Suspense fallback={<div>Loading filters...</div>}>
+                <OrderFilters />
+            </Suspense>
 
-            <div className="bg-card rounded-lg border shadow-sm">
+            <div className="bg-card rounded-lg border shadow-sm mt-6">
                 <div className="overflow-x-auto">
                     <table className="w-full">
                         <thead className="border-b bg-muted/50">
