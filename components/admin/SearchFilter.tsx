@@ -1,4 +1,5 @@
 'use client';
+// Force Vercel rebuild
 
 import { Input } from '@/components/ui/input';
 import { Search } from 'lucide-react';
@@ -36,13 +37,13 @@ export function SearchFilter() {
                     <Input
                         placeholder="Search by Order ID, Customer, or Phone..."
                         value={search}
-                        onChange={(e) => setSearch(e.target.value)}
+                        onChange={(e: React.ChangeEvent<HTMLInputElement>) => setSearch(e.target.value)}
                         className="pl-10"
                     />
                 </div>
                 <select
                     value={status}
-                    onChange={(e) => setStatus(e.target.value)}
+                    onChange={(e: React.ChangeEvent<HTMLSelectElement>) => setStatus(e.target.value)}
                     className="h-10 rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
                 >
                     <option value="All">All Statuses</option>
@@ -54,7 +55,7 @@ export function SearchFilter() {
                 </select>
                 <select
                     value={paymentMethod}
-                    onChange={(e) => setPaymentMethod(e.target.value)}
+                    onChange={(e: React.ChangeEvent<HTMLSelectElement>) => setPaymentMethod(e.target.value)}
                     className="h-10 rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
                 >
                     <option value="All">All Payments</option>
@@ -69,14 +70,14 @@ export function SearchFilter() {
                 <input
                     type="date"
                     value={startDate}
-                    onChange={(e) => setStartDate(e.target.value)}
+                    onChange={(e: React.ChangeEvent<HTMLInputElement>) => setStartDate(e.target.value)}
                     className="h-9 rounded-md border border-input bg-background px-3 py-1 text-sm"
                 />
                 <span>to</span>
                 <input
                     type="date"
                     value={endDate}
-                    onChange={(e) => setEndDate(e.target.value)}
+                    onChange={(e: React.ChangeEvent<HTMLInputElement>) => setEndDate(e.target.value)}
                     className="h-9 rounded-md border border-input bg-background px-3 py-1 text-sm"
                 />
                 {(startDate || endDate) && (
