@@ -21,14 +21,7 @@
   --foreground: #171717;
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
-
-  /* Dark mode overrides if needed, for now keeping it simple/light-focused or adaptive */
-}
+/* Dark mode disabled for consistency */
 
 body {
   background-color: #e3e6e6;
