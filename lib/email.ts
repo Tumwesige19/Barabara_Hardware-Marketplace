@@ -1,15 +1,21 @@
-import { Resend } from 'resend';
+import nodemailer from 'nodemailer';
 
-// Initialize Resend with API key from environment variable
-const resend = new Resend(process.env.RESEND_API_KEY);
+// Initialize Nodemailer transporter
+const transporter = nodemailer.createTransport({
+    service: 'gmail',
+    auth: {
+        user: process.env.SMTP_EMAIL,
+        pass: process.env.SMTP_PASSWORD,
+    },
+});
 
 export async function sendPasswordResetEmail(to: string, token: string, userName: string) {
     try {
         const resetUrl = `${process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000'}/reset-password`;
 
-        const { data, error } = await resend.emails.send({
-            from: 'Barabara Hardware <onboarding@resend.dev>',
-            to: [to],
+        const info = await transporter.sendMail({
+            from: `"Barabara Hardware" <${process.env.SMTP_EMAIL}>`,
+            to: to,
             subject: 'Your Password Reset Code - Barabara Hardware',
             html: `
                 <!DOCTYPE html>
@@ -71,12 +77,75 @@ export async function sendPasswordResetEmail(to: string, token: string, userName
             `,
         });
 
-        if (error) {
-            console.error('Failed to send email:', error);
-            return { success: false, error: error.message };
-        }
+        console.log('Message sent: %s', info.messageId);
+        return { success: true, data: info };
+    } catch (error) {
+        console.error('Email service error:', error);
+        return { success: false, error: 'Failed to send email' };
+    }
+}
 
-        return { success: true, data };
+export async function sendOrderConfirmationEmail(to: string, userName: string, orderId: string, items: any[], total: number) {
+    try {
+        const itemsHtml = items.map(item => `
+            <div style="border-bottom: 1px solid #eee; padding: 10px 0; display: flex; justify-content: space-between;">
+                <div>
+                    <span style="font-weight: bold;">${item.name}</span>
+                    <div style="font-size: 12px; color: #666;">Qty: ${item.quantity}</div>
+                </div>
+                <div>${new Intl.NumberFormat('en-UG', { style: 'currency', currency: 'UGX' }).format(item.price * item.quantity)}</div>
+            </div>
+        `).join('');
+
+        const info = await transporter.sendMail({
+            from: `"Barabara Hardware" <${process.env.SMTP_EMAIL}>`,
+            to: to,
+            subject: `Order Confirmation: #${orderId}`,
+            html: `
+                <!DOCTYPE html>
+                <html>
+                <head>
+                    <style>
+                        body { font-family: Arial, sans-serif; line-height: 1.6; color: #333; }
+                        .container { max-width: 600px; margin: 0 auto; padding: 20px; }
+                        .header { background-color: #131921; color: white; padding: 20px; text-align: center; }
+                        .content { background-color: #f9f9f9; padding: 30px; border-radius: 5px; margin-top: 20px; }
+                        .order-details { background-color: white; padding: 20px; border-radius: 5px; margin: 20px 0; }
+                        .total { font-size: 18px; font-weight: bold; text-align: right; margin-top: 20px; border-top: 2px solid #333; padding-top: 10px; }
+                        .footer { text-align: center; margin-top: 30px; color: #666; font-size: 12px; }
+                    </style>
+                </head>
+                <body>
+                    <div class="container">
+                        <div class="header">
+                            <h1>🎉 Order Placed Successfully!</h1>
+                        </div>
+                        <div class="content">
+                            <h2>Hello ${userName},</h2>
+                            <p>Your order has been placed successfully and your order number is <strong>${orderId}</strong>.</p>
+                            
+                            <div class="order-details">
+                                <h3>Order Details</h3>
+                                ${itemsHtml}
+                                <div class="total">
+                                    Total: ${new Intl.NumberFormat('en-UG', { style: 'currency', currency: 'UGX' }).format(total)}
+                                </div>
+                            </div>
+                            
+                            <p>It may take about 5 days to receive your package.</p>
+                            <p>Thank you for shopping with us!</p>
+                        </div>
+                        <div class="footer">
+                            <p>© ${new Date().getFullYear()} Barabara Hardware. All rights reserved.</p>
+                        </div>
+                    </div>
+                </body>
+                </html>
+            `,
+        });
+
+        console.log('Message sent: %s', info.messageId);
+        return { success: true, data: info };
     } catch (error) {
         console.error('Email service error:', error);
         return { success: false, error: 'Failed to send email' };
@@ -85,9 +154,9 @@ export async function sendPasswordResetEmail(to: string, token: string, userName
 
 export async function sendOrderStatusEmail(to: string, userName: string, orderId: string, status: string) {
     try {
-        const { data, error } = await resend.emails.send({
-            from: 'Barabara Hardware <onboarding@resend.dev>',
-            to: [to],
+        const info = await transporter.sendMail({
+            from: `"Barabara Hardware" <${process.env.SMTP_EMAIL}>`,
+            to: to,
             subject: `Order Update: #${orderId} is ${status}`,
             html: `
                 <!DOCTYPE html>
@@ -136,12 +205,8 @@ export async function sendOrderStatusEmail(to: string, userName: string, orderId
             `,
         });
 
-        if (error) {
-            console.error('Failed to send email:', error);
-            return { success: false, error: error.message };
-        }
-
-        return { success: true, data };
+        console.log('Message sent: %s', info.messageId);
+        return { success: true, data: info };
     } catch (error) {
         console.error('Email service error:', error);
         return { success: false, error: 'Failed to send email' };

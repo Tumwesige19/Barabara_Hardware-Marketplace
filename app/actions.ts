@@ -104,6 +104,22 @@ export async function createOrder(data: {
 
         await db.createOrder(orderData);
 
+        // Send confirmation email
+        try {
+            const { sendOrderConfirmationEmail } = await import('@/lib/email');
+            if (data.customerEmail) {
+                await sendOrderConfirmationEmail(
+                    data.customerEmail,
+                    data.customerName,
+                    orderId,
+                    data.items,
+                    data.total
+                );
+            }
+        } catch (emailError) {
+            console.error('Failed to send confirmation email:', emailError);
+        }
+
         revalidatePath('/admin/orders');
         revalidatePath('/admin');
         revalidatePath('/profile');
@@ -226,13 +242,16 @@ export async function updateOrderStatus(orderId: string, newStatus: string) {
 
         const order = await db.getOrderById(orderId);
 
-        if (order && (newStatus === 'Shipped' || newStatus === 'Delivered')) {
+        if (order) {
             try {
                 const { sendOrderStatusEmail } = await import('@/lib/email');
                 const user = await db.findUserById(order.userId);
 
-                if (user && user.email) {
-                    await sendOrderStatusEmail(user.email, order.customerName, order.id, newStatus);
+                // Try to find email from user record, or fallback to order customer email if available (not stored in order currently but good practice)
+                const email = user?.email;
+
+                if (email) {
+                    await sendOrderStatusEmail(email, order.customerName, order.id, newStatus);
                 }
             } catch (emailError) {
                 console.error('Failed to send status email:', emailError);

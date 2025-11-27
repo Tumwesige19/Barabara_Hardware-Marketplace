@@ -119,10 +119,12 @@ export default function ProfilePage() {
                                         </div>
                                     </div>
                                     <div className="space-y-2">
-                                        {order.items.map((item: string, index: number) => (
+                                        {order.items.map((item: any, index: number) => (
                                             <div key={index} className="flex items-center gap-2 text-sm">
                                                 <div className="h-2 w-2 rounded-full bg-primary" />
-                                                <span>{item}</span>
+                                                <span>
+                                                    {typeof item === 'string' ? item : `${item.name} (x${item.quantity})`}
+                                                </span>
                                             </div>
                                         ))}
                                     </div>
