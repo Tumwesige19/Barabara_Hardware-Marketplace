@@ -15,8 +15,7 @@ export function ProductCard({ product }: { product: Product }) {
 
     const handleAddToCart = async () => {
         setIsAdding(true);
-        // Simulate flicker/delay
-        await new Promise(resolve => setTimeout(resolve, 200));
+        // Delay removed for instant feedback
 
         addToCart(product);
         toast.success("Added to cart");
