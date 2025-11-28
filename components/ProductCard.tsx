@@ -15,11 +15,11 @@ export function ProductCard({ product }: { product: Product }) {
 
     const handleAddToCart = async () => {
         setIsAdding(true);
-        // Delay removed for instant feedback
-
         addToCart(product);
         toast.success("Added to cart");
 
+        // Keep the "Adding..." state for 500ms to give visual feedback (flicker)
+        await new Promise(resolve => setTimeout(resolve, 500));
         setIsAdding(false);
     };
 
