@@ -6,6 +6,7 @@ import { useCart } from '@/context/CartContext';
 import { categories } from '@/lib/data';
 import { useState } from 'react';
 import { Sidebar } from './Sidebar';
+import { SmartSearch } from './SmartSearch';
 import { useSession, signOut } from 'next-auth/react';
 
 export function Navbar() {
@@ -34,20 +35,8 @@ export function Navbar() {
               </div>
             </div>
 
-            {/* Search Bar */}
-            <div className="flex flex-1 items-center h-10 rounded-md overflow-hidden focus-within:ring-2 focus-within:ring-[#febd69] mx-2">
-              <button className="h-full px-3 bg-gray-100 text-gray-700 hover:bg-gray-200 border-r border-gray-300 flex items-center gap-1 text-xs">
-                All <ChevronDown className="h-3 w-3" />
-              </button>
-              <input
-                type="text"
-                placeholder="Search Barabara Hardware"
-                className="flex-1 h-full px-3 text-black focus:outline-none"
-              />
-              <button className="h-full px-4 bg-[#febd69] hover:bg-[#f3a847] transition-colors">
-                <Search className="h-5 w-5 text-slate-900" />
-              </button>
-            </div>
+            {/* Smart Search Bar */}
+            <SmartSearch />
 
             {/* Right Side Actions */}
             <div className="flex items-center gap-4">
