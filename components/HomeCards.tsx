@@ -28,13 +28,13 @@ export function HomeCards() {
                         />
                         
                         <div className="relative z-20">
-                            <span className="inline-flex items-center justify-center p-2.5 rounded-full bg-white/10 text-orange-500 backdrop-blur-md mb-4 border border-white/10">
+                            <span className="inline-flex items-center justify-center p-2.5 rounded-xl bg-orange-500/20 text-orange-400 mb-4 border border-orange-500/30 backdrop-blur-sm shadow-inner">
                                 <Key className="h-5 w-5" />
                             </span>
-                            <h3 className="text-2xl font-black text-white leading-tight mb-2 tracking-tight">
+                            <h3 className="text-2xl font-black text-white leading-tight mb-2 tracking-tight drop-shadow-[0_2px_4px_rgba(0,0,0,0.8)]">
                                 Smart Security Systems
                             </h3>
-                            <p className="text-xs text-slate-300 font-medium max-w-xs leading-relaxed">
+                            <p className="text-xs text-slate-100 font-extrabold max-w-xs leading-relaxed drop-shadow-[0_2px_4px_rgba(0,0,0,0.8)]">
                                 Keyless entries, biometric scanner deadbolts, and Wi-Fi tracking hubs.
                             </p>
                         </div>
@@ -42,7 +42,7 @@ export function HomeCards() {
                         <div className="relative z-20 mt-auto pt-6">
                             <Link 
                                 href="/products?category=door-locks" 
-                                className="inline-flex items-center gap-1.5 text-xs font-bold text-orange-400 hover:text-orange-300 group/link transition-colors cursor-pointer"
+                                className="inline-flex items-center gap-1.5 text-xs font-bold text-orange-400 hover:text-orange-300 drop-shadow-[0_1px_2px_rgba(0,0,0,0.8)] group/link transition-colors cursor-pointer"
                             >
                                 <span>Browse Smart Access</span>
                                 <ArrowRight className="h-4 w-4 transition-transform group-hover/link:translate-x-1" />

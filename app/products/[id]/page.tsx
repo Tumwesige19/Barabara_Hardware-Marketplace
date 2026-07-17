@@ -6,6 +6,7 @@ import { useCart } from '@/context/CartContext';
 import { ShoppingCart, Star, Check, ArrowLeft, PlayCircle, FileText, Wrench } from 'lucide-react';
 import Link from 'next/link';
 import { useState } from 'react';
+import { DoorConfigurator } from '@/components/DoorConfigurator';
 
 export default function ProductDetailPage() {
     const params = useParams();
@@ -175,6 +176,13 @@ export default function ProductDetailPage() {
                     </div>
                 </div>
             </div>
+
+            {/* Interactive Customizer for Door Locks */}
+            {product.category === 'door-locks' && (
+                <div className="mb-16">
+                    <DoorConfigurator productImage={product.image} productName={product.name} />
+                </div>
+            )}
 
             {/* Tabs Section */}
             <div className="border-t border-border pt-12">
