@@ -31,7 +31,6 @@ export async function registerUser(data: {
             name: data.name,
             password: hashedPassword,
             phone: data.phone || null,
-            role: 'user',
             createdAt: now,
             updatedAt: now
         };

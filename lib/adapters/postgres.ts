@@ -23,7 +23,6 @@ export class PostgresAdapter implements DBAdapter {
                 name: data.name,
                 password: data.password,
                 phone: data.phone,
-                role: data.role || 'user',
                 createdAt: data.createdAt,
                 updatedAt: data.updatedAt
             }

@@ -1,100 +1,61 @@
 import Link from 'next/link';
-import { redirect } from 'next/navigation';
-import { LayoutDashboard, ShoppingCart, MessageSquare, BarChart2, Shield, LogOut } from 'lucide-react';
-import { auth, signOut } from '@/lib/auth-config';
+import { LayoutDashboard, ShoppingCart, MessageSquare, Settings, LogOut } from 'lucide-react';
 
-export default async function AdminLayout({
+export default function AdminLayout({
     children,
 }: {
     children: React.ReactNode;
 }) {
-    // Server-side double-check (defence in depth — middleware is the first gate)
-    const session = await auth();
-
-    if (!session?.user) {
-        redirect('/admin-login');
-    }
-
-    if (session.user.role !== 'admin') {
-        redirect('/admin-login?error=Access+denied.+Admin+privileges+required.');
-    }
-
     return (
-        <div className="flex min-h-screen bg-slate-950 text-white">
+        <div className="flex min-h-screen bg-muted/20">
             {/* Sidebar */}
-            <aside className="w-64 bg-slate-900 border-r border-slate-800 hidden md:flex flex-col">
-                {/* Logo */}
-                <div className="p-6 border-b border-slate-800">
-                    <div className="flex items-center gap-2">
-                        <Shield className="h-5 w-5 text-orange-500" />
-                        <h1 className="text-lg font-black tracking-tight text-white">
-                            Barabara <span className="text-orange-500">Admin</span>
-                        </h1>
-                    </div>
-                    <p className="text-xs text-slate-500 mt-1 font-medium">
-                        Signed in as <span className="text-slate-300">{session.user.email}</span>
-                    </p>
+            <aside className="w-64 bg-background border-r border-border hidden md:flex flex-col">
+                <div className="p-6 border-b border-border">
+                    <h1 className="text-xl font-bold text-primary">Barabara Admin</h1>
                 </div>
-
-                {/* Nav */}
-                <nav className="flex-1 p-4 space-y-1">
+                <nav className="flex-1 p-4 space-y-2">
                     <Link
                         href="/admin"
-                        className="flex items-center gap-3 px-4 py-3 text-sm font-semibold rounded-xl hover:bg-slate-800 text-slate-300 hover:text-white transition-all"
+                        className="flex items-center gap-3 px-4 py-3 text-sm font-medium rounded-md hover:bg-muted transition-colors"
                     >
-                        <LayoutDashboard className="h-4 w-4 shrink-0" />
+                        <LayoutDashboard className="h-5 w-5" />
                         Dashboard
                     </Link>
                     <Link
                         href="/admin/orders"
-                        className="flex items-center gap-3 px-4 py-3 text-sm font-semibold rounded-xl hover:bg-slate-800 text-slate-300 hover:text-white transition-all"
+                        className="flex items-center gap-3 px-4 py-3 text-sm font-medium rounded-md hover:bg-muted transition-colors"
                     >
-                        <ShoppingCart className="h-4 w-4 shrink-0" />
+                        <ShoppingCart className="h-5 w-5" />
                         Orders
                     </Link>
                     <Link
                         href="/admin/messages"
-                        className="flex items-center gap-3 px-4 py-3 text-sm font-semibold rounded-xl hover:bg-slate-800 text-slate-300 hover:text-white transition-all"
+                        className="flex items-center gap-3 px-4 py-3 text-sm font-medium rounded-md hover:bg-muted transition-colors"
                     >
-                        <MessageSquare className="h-4 w-4 shrink-0" />
+                        <MessageSquare className="h-5 w-5" />
                         Messages
                     </Link>
                     <Link
-                        href="/admin/analytics"
-                        className="flex items-center gap-3 px-4 py-3 text-sm font-semibold rounded-xl hover:bg-slate-800 text-slate-300 hover:text-white transition-all"
+                        href="/admin/settings"
+                        className="flex items-center gap-3 px-4 py-3 text-sm font-medium rounded-md hover:bg-muted transition-colors"
                     >
-                        <BarChart2 className="h-4 w-4 shrink-0" />
-                        Analytics
+                        <Settings className="h-5 w-5" />
+                        Settings
                     </Link>
                 </nav>
-
-                {/* Footer */}
-                <div className="p-4 border-t border-slate-800 space-y-1">
+                <div className="p-4 border-t border-border">
                     <Link
                         href="/"
-                        className="flex items-center gap-3 px-4 py-3 text-sm font-semibold rounded-xl text-slate-400 hover:text-white hover:bg-slate-800 transition-all"
+                        className="flex items-center gap-3 px-4 py-3 text-sm font-medium text-red-500 rounded-md hover:bg-red-50 transition-colors"
                     >
-                        ← Back to Store
+                        <LogOut className="h-5 w-5" />
+                        Exit Admin
                     </Link>
-                    <form
-                        action={async () => {
-                            'use server';
-                            await signOut({ redirectTo: '/login' });
-                        }}
-                    >
-                        <button
-                            type="submit"
-                            className="w-full flex items-center gap-3 px-4 py-3 text-sm font-semibold rounded-xl text-red-400 hover:text-white hover:bg-red-500/20 transition-all cursor-pointer"
-                        >
-                            <LogOut className="h-4 w-4 shrink-0" />
-                            Sign Out
-                        </button>
-                    </form>
                 </div>
             </aside>
 
             {/* Main Content */}
-            <main className="flex-1 overflow-y-auto bg-slate-950">
+            <main className="flex-1 overflow-y-auto">
                 <div className="p-8">
                     {children}
                 </div>

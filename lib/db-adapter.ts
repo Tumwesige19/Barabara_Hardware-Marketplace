@@ -33,7 +33,6 @@ export interface CreateUserData {
     name: string;
     password: string;
     phone: string | null;
-    role: string;
     createdAt: string;
     updatedAt: string;
 }

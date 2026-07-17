@@ -26,9 +26,9 @@ export class SQLiteAdapter implements DBAdapter {
 
     async createUser(data: CreateUserData) {
         return this.db.prepare(`
-            INSERT INTO User (id, email, name, password, phone, role, createdAt, updatedAt)
-            VALUES (?, ?, ?, ?, ?, ?, ?, ?)
-        `).run(data.id, data.email, data.name, data.password, data.phone, data.role || 'user', data.createdAt, data.updatedAt);
+            INSERT INTO User (id, email, name, password, phone, createdAt, updatedAt)
+            VALUES (?, ?, ?, ?, ?, ?, ?)
+        `).run(data.id, data.email, data.name, data.password, data.phone, data.createdAt, data.updatedAt);
     }
 
     async updateUserPassword(userId: string, password: string, updatedAt: string) {

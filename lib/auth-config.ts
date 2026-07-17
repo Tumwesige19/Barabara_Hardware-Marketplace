@@ -1,6 +1,6 @@
 import NextAuth from "next-auth";
 import CredentialsProvider from "next-auth/providers/credentials";
-import db from "@/lib/db";
+import { getUserByEmail } from "@/app/actions/auth";
 import { verifyPassword } from "@/lib/auth";
 
 export const { handlers, signIn, signOut, auth } = NextAuth({
@@ -16,7 +16,7 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
                     return null;
                 }
 
-                const user = await db.findUserByEmail(credentials.email as string);
+                const user = await getUserByEmail(credentials.email as string);
 
                 if (!user) {
                     return null;
@@ -35,7 +35,6 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
                     id: user.id,
                     email: user.email,
                     name: user.name,
-                    role: user.role || 'user',
                 };
             }
         })
@@ -47,14 +46,12 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
         async jwt({ token, user }) {
             if (user) {
                 token.id = user.id;
-                token.role = user.role || 'user';
             }
             return token;
         },
         async session({ session, token }) {
             if (session.user) {
                 session.user.id = token.id as string;
-                session.user.role = token.role as string;
             }
             return session;
         }
@@ -62,5 +59,4 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
     session: {
         strategy: "jwt",
     },
-    secret: process.env.AUTH_SECRET || process.env.NEXTAUTH_SECRET,
 });
