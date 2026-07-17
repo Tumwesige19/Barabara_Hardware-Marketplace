@@ -11,9 +11,21 @@ export async function middleware(request: NextRequest) {
         secret: process.env.NEXTAUTH_SECRET || process.env.AUTH_SECRET,
     });
 
-    // Guard all /admin/** routes (NOT /admin-login — that's outside this matcher)
-    if (pathname.startsWith('/admin')) {
+    // If already signed in as admin and visiting the login page → skip to dashboard
+    if (pathname === '/admin-login') {
+        if (token?.role === 'admin') {
+            return NextResponse.redirect(new URL('/admin', request.url));
+        }
+        // Not admin → show the login page normally
+        return NextResponse.next();
+    }
 
+    // Guard /admin exactly, and /admin/* (with trailing slash) — but NOT /admin-login
+    // IMPORTANT: use pathname === '/admin' || pathname.startsWith('/admin/')
+    // so that /admin-login (which starts with /admin but NOT /admin/) is never caught
+    const isAdminRoute = pathname === '/admin' || pathname.startsWith('/admin/');
+
+    if (isAdminRoute) {
         // Not signed in → redirect to admin login page
         if (!token) {
             return NextResponse.redirect(new URL('/admin-login', request.url));
@@ -26,18 +38,12 @@ export async function middleware(request: NextRequest) {
             return NextResponse.redirect(loginUrl);
         }
 
-        // role === 'admin' → let through
-    }
-
-    // If already signed in as admin and trying to visit /admin-login, skip to dashboard
-    if (pathname === '/admin-login' && token?.role === 'admin') {
-        return NextResponse.redirect(new URL('/admin', request.url));
+        // role === 'admin' → allow through ✅
     }
 
     return NextResponse.next();
 }
 
-// Only run on /admin routes — /admin-login is completely separate and unprotected
 export const config = {
     matcher: ['/admin', '/admin/:path*', '/admin-login'],
 };
