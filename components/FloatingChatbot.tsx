@@ -97,82 +97,80 @@ export function FloatingChatbot() {
         };
     }, []);
 
-    // Text to Speech Function
+    // Text to Speech Function (Unified Cloud-Based Streaming Player)
     const speakText = (text: string) => {
-        if (typeof window === 'undefined' || !window.speechSynthesis) return;
+        if (typeof window === 'undefined') return;
 
-        // Cancel previous speech narration
-        window.speechSynthesis.cancel();
+        // 1. Cancel/stop any currently playing speech audio
+        if ((window as any).currentSpeechAudio) {
+            try {
+                (window as any).currentSpeechAudio.pause();
+                (window as any).currentSpeechAudio = null;
+            } catch (e) {
+                console.error("Failed to stop previous speech:", e);
+            }
+        }
 
-        // Clean markdown tokens for clear speech synthesis
+        // 2. Clean markdown formatting tokens for clean narration output
         const cleanText = text
             .replace(/\*\*/g, '') // remove bold markers
             .replace(/•/g, '')    // remove bullet points
             .replace(/-/g, ' ')   // replace dashes with spaces
             .replace(/\n/g, ' '); // replace linebreaks with spaces
 
-        const utterance = new SpeechSynthesisUtterance(cleanText);
-        
-        // Find suitable British English (en-GB) female/lady voice
-        const voices = voicesList.length > 0 ? voicesList : (typeof window !== 'undefined' && window.speechSynthesis ? window.speechSynthesis.getVoices() : []);
-        
-        // Keywords corresponding to known British English female voices
-        const femaleBritishKeywords = [
-            'emily', 'serena', 'hazel', 'susan', 'sonia', 'libby', 'mia', 'female',
-            'google uk english female', 'uk english female', 'united kingdom female'
-        ];
+        // 3. Google Translate TTS limits single requests to 200 characters.
+        // We split the cleaned text into custom sentence/word chunks of max 150 chars.
+        const chunks: string[] = [];
+        const words = cleanText.split(' ');
+        let currentChunk = '';
 
-        // 1. Search for en-GB voice that matches one of our female keywords
-        let selectedVoice = voices.find(v => {
-            const name = v.name.toLowerCase();
-            const lang = v.lang.toLowerCase();
-            const isBritish = lang === 'en-gb' || lang.startsWith('en-gb') || name.includes('united kingdom') || name.includes('great britain') || name.includes('uk english') || name.includes('uk');
-            const isFemale = femaleBritishKeywords.some(keyword => name.includes(keyword));
-            return isBritish && isFemale;
+        words.forEach(word => {
+            if ((currentChunk + ' ' + word).length > 150) {
+                chunks.push(currentChunk.trim());
+                currentChunk = word;
+            } else {
+                currentChunk = currentChunk ? currentChunk + ' ' + word : word;
+            }
         });
+        if (currentChunk) {
+            chunks.push(currentChunk.trim());
+        }
 
-        // 2. Fallback to any en-GB voice containing a female keyword (less strict matching)
-        if (!selectedVoice) {
-            selectedVoice = voices.find(v => {
-                const name = v.name.toLowerCase();
-                const lang = v.lang.toLowerCase();
-                const isBritish = lang.includes('gb') || lang.includes('uk') || name.includes('united kingdom') || name.includes('uk');
-                const isFemale = name.includes('female') || name.includes('woman') || name.includes('girl') || name.includes('zira') || name.includes('samantha') || name.includes('tessa') || name.includes('karen') || name.includes('hazel');
-                return isBritish && isFemale;
+        // 4. Sequential chunk player utilizing the Audio onended hook
+        let chunkIndex = 0;
+
+        const playNextChunk = () => {
+            if (chunkIndex >= chunks.length) {
+                (window as any).currentSpeechAudio = null;
+                return;
+            }
+
+            const chunkText = chunks[chunkIndex];
+            // Request the high-quality Google British English (en-GB) female voice profile
+            const audioUrl = `https://translate.google.com/translate_tts?ie=UTF-8&tl=en-GB&client=tw-ob&q=${encodeURIComponent(chunkText)}`;
+            
+            const audio = new Audio(audioUrl);
+            (window as any).currentSpeechAudio = audio;
+
+            audio.onended = () => {
+                chunkIndex++;
+                playNextChunk();
+            };
+
+            audio.onerror = (e) => {
+                console.error("TTS playback error for chunk:", chunkText, e);
+                // Fail gracefully and attempt to speak next chunk
+                chunkIndex++;
+                playNextChunk();
+            };
+
+            // Set standard speed and sharp audio elements
+            audio.play().catch(err => {
+                console.warn("Audio autoplay blocked by browser sandbox:", err);
             });
-        }
+        };
 
-        // 3. Fallback to any English female voice (even if US or Australian) to avoid a male voice
-        if (!selectedVoice) {
-            selectedVoice = voices.find(v => {
-                const name = v.name.toLowerCase();
-                const lang = v.lang.toLowerCase();
-                const isEnglish = lang.startsWith('en');
-                const isFemale = name.includes('female') || name.includes('woman') || name.includes('zira') || name.includes('samantha') || name.includes('tessa') || name.includes('karen') || name.includes('hazel') || name.includes('susan') || name.includes('sonia') || name.includes('victoria');
-                return isEnglish && isFemale;
-            });
-        }
-
-        // 4. Fallback to any en-GB voice (as a last resort if no female voice is installed at all)
-        if (!selectedVoice) {
-            selectedVoice = voices.find(v => {
-                const lang = v.lang.toLowerCase();
-                return lang === 'en-gb' || lang.startsWith('en-gb') || v.name.toLowerCase().includes('united kingdom') || v.name.toLowerCase().includes('uk english');
-            });
-        }
-
-        // 5. Fallback to any English voice
-        if (!selectedVoice) {
-            selectedVoice = voices.find(v => v.lang.startsWith('en'));
-        }
-
-        if (selectedVoice) {
-            utterance.voice = selectedVoice;
-        }
-
-        utterance.rate = 1.00; // Standard, sharp, clear speaking rate
-        utterance.pitch = 1.25; // Sharp, clear, high-pitched feminine tone
-        window.speechSynthesis.speak(utterance);
+        playNextChunk();
     };
 
     // NLP reasoning engine to generate replies based on products in lib/data.ts
