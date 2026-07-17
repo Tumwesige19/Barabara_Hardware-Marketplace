@@ -96,29 +96,53 @@ export function FloatingChatbot() {
         
         // Find suitable British English (en-GB) female/lady voice
         const voices = window.speechSynthesis.getVoices();
+        
+        // Keywords corresponding to known British English female voices
+        const femaleBritishKeywords = [
+            'emily', 'serena', 'hazel', 'susan', 'sonia', 'libby', 'mia', 'female',
+            'google uk english female', 'uk english female', 'united kingdom female'
+        ];
+
+        // 1. Search for en-GB voice that matches one of our female keywords
         let selectedVoice = voices.find(v => {
             const name = v.name.toLowerCase();
             const lang = v.lang.toLowerCase();
-            return (lang === 'en-gb' || lang.startsWith('en-gb')) && 
-                   (name.includes('female') || name.includes('hazel') || name.includes('sonia') || name.includes('susan') || name.includes('natural') || name.includes('google uk english female'));
+            const isBritish = lang === 'en-gb' || lang.startsWith('en-gb') || name.includes('united kingdom') || name.includes('great britain') || name.includes('uk english') || name.includes('uk');
+            const isFemale = femaleBritishKeywords.some(keyword => name.includes(keyword));
+            return isBritish && isFemale;
         });
 
-        // Fallback to any en-GB British voice
-        if (!selectedVoice) {
-            selectedVoice = voices.find(v => v.lang.toLowerCase() === 'en-gb' || v.lang.toLowerCase().startsWith('en-gb'));
-        }
-
-        // Fallback to any English Female voice
+        // 2. Fallback to any en-GB voice containing a female keyword (less strict matching)
         if (!selectedVoice) {
             selectedVoice = voices.find(v => {
                 const name = v.name.toLowerCase();
                 const lang = v.lang.toLowerCase();
-                return lang.startsWith('en') && 
-                       (name.includes('female') || name.includes('hazel') || name.includes('sonia') || name.includes('susan') || name.includes('zira') || name.includes('google uk english female') || name.includes('natural'));
+                const isBritish = lang.includes('gb') || lang.includes('uk') || name.includes('united kingdom') || name.includes('uk');
+                const isFemale = name.includes('female') || name.includes('woman') || name.includes('girl') || name.includes('zira') || name.includes('samantha') || name.includes('tessa') || name.includes('karen') || name.includes('hazel');
+                return isBritish && isFemale;
             });
         }
 
-        // Fallback to any English voice
+        // 3. Fallback to any English female voice (even if US or Australian) to avoid a male voice
+        if (!selectedVoice) {
+            selectedVoice = voices.find(v => {
+                const name = v.name.toLowerCase();
+                const lang = v.lang.toLowerCase();
+                const isEnglish = lang.startsWith('en');
+                const isFemale = name.includes('female') || name.includes('woman') || name.includes('zira') || name.includes('samantha') || name.includes('tessa') || name.includes('karen') || name.includes('hazel') || name.includes('susan') || name.includes('sonia') || name.includes('victoria');
+                return isEnglish && isFemale;
+            });
+        }
+
+        // 4. Fallback to any en-GB voice (as a last resort if no female voice is installed at all)
+        if (!selectedVoice) {
+            selectedVoice = voices.find(v => {
+                const lang = v.lang.toLowerCase();
+                return lang === 'en-gb' || lang.startsWith('en-gb') || v.name.toLowerCase().includes('united kingdom') || v.name.toLowerCase().includes('uk english');
+            });
+        }
+
+        // 5. Fallback to any English voice
         if (!selectedVoice) {
             selectedVoice = voices.find(v => v.lang.startsWith('en'));
         }
@@ -127,8 +151,8 @@ export function FloatingChatbot() {
             utterance.voice = selectedVoice;
         }
 
-        utterance.rate = 0.95; // Speaking speed
-        utterance.pitch = 1.08; // Slightly higher pitch for a premium feminine voice tone
+        utterance.rate = 0.90; // Slower rate for clear, elegant and polite British tone
+        utterance.pitch = 1.15; // Slightly higher pitch for a premium feminine voice tone
         window.speechSynthesis.speak(utterance);
     };
 
