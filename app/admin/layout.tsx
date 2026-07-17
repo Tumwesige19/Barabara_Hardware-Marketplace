@@ -12,11 +12,11 @@ export default async function AdminLayout({
     const session = await auth();
 
     if (!session?.user) {
-        redirect('/admin/login');
+        redirect('/admin-login');
     }
 
     if (session.user.role !== 'admin') {
-        redirect('/admin/login?error=Access+denied.+Admin+privileges+required.');
+        redirect('/admin-login?error=Access+denied.+Admin+privileges+required.');
     }
 
     return (
