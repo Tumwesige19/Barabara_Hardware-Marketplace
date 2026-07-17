@@ -25,6 +25,12 @@ function AdminLoginForm() {
         setError('');
         setLoading(true);
 
+        // Safety timeout — never spin forever
+        const timeout = setTimeout(() => {
+            setLoading(false);
+            setError('Request timed out. Please check your connection and try again.');
+        }, 20000);
+
         try {
             const result = await signIn('credentials', {
                 email,
@@ -32,33 +38,20 @@ function AdminLoginForm() {
                 redirect: false,
             });
 
-            if (result?.error) {
-                setError('Invalid credentials. Access denied.');
+            clearTimeout(timeout);
+
+            if (!result || result.error) {
+                setError('Invalid email or password. Access denied.');
                 setLoading(false);
                 return;
             }
 
-            // Fetch session to verify admin role
-            const sessionRes = await fetch('/api/auth/session');
-            const session = await sessionRes.json();
-
-            if (!session?.user) {
-                setError('Authentication failed. Please try again.');
-                setLoading(false);
-                return;
-            }
-
-            if (session.user.role !== 'admin') {
-                setError('Access denied. This portal is for administrators only.');
-                setLoading(false);
-                return;
-            }
-
-            // Admin confirmed — enter the portal
-            router.push('/admin');
-            router.refresh();
+            // Sign-in succeeded — hard redirect so the server middleware
+            // verifies the admin role fresh from the new session cookie
+            window.location.href = '/admin';
 
         } catch {
+            clearTimeout(timeout);
             setError('An unexpected error occurred. Please try again.');
             setLoading(false);
         }
