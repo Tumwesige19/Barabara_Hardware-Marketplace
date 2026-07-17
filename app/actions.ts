@@ -62,6 +62,7 @@ export async function createOrder(data: {
                         name: data.customerName || 'Guest Customer',
                         password: hashedPassword,
                         phone: data.phone || null,
+                        role: 'user',
                         createdAt: now,
                         updatedAt: now
                     };
