@@ -1,11 +1,22 @@
 import { getAnalyticsData } from '@/app/actions';
 import { RevenueChart } from '@/components/admin/charts/RevenueChart';
 import { OrderStatusChart } from '@/components/admin/charts/OrderStatusChart';
+import { TopProductsChart } from '@/components/admin/charts/TopProductsChart';
+import { PaymentMethodsChart } from '@/components/admin/charts/PaymentMethodsChart';
+import { UgandaDistrictMap } from '@/components/admin/charts/UgandaDistrictMap';
 import { ArrowLeft } from 'lucide-react';
 import Link from 'next/link';
 
 export default async function AnalyticsPage() {
-    const { dailyStats, statusStats, slaPercentage } = await getAnalyticsData();
+    const { 
+        dailyStats, 
+        statusStats, 
+        slaPercentage,
+        topProducts,
+        categoryStats,
+        paymentStats,
+        districtStats
+    } = await getAnalyticsData();
 
     return (
         <div className="space-y-8">
@@ -32,19 +43,18 @@ export default async function AnalyticsPage() {
                 </div>
             </div>
 
-            {/* Placeholder for Phase 2 & 3 */}
-            <div className="grid gap-6 md:grid-cols-2">
-                <div className="h-[300px] rounded-xl border border-dashed flex items-center justify-center text-muted-foreground bg-muted/20">
-                    Top Products & Categories (Phase 2)
+            {/* Phase 2: Sales Channels & Products */}
+            <div className="grid gap-6 lg:grid-cols-3">
+                <div className="lg:col-span-2">
+                    <TopProductsChart products={topProducts} categories={categoryStats} />
                 </div>
-                <div className="h-[300px] rounded-xl border border-dashed flex items-center justify-center text-muted-foreground bg-muted/20">
-                    Payment Methods & Issues (Phase 2)
+                <div className="lg:col-span-1">
+                    <PaymentMethodsChart data={paymentStats} />
                 </div>
             </div>
 
-            <div className="h-[400px] rounded-xl border border-dashed flex items-center justify-center text-muted-foreground bg-muted/20">
-                Uganda District Map (Phase 3)
-            </div>
+            {/* Phase 3: Uganda District Map */}
+            <UgandaDistrictMap data={districtStats} />
         </div>
     );
 }
