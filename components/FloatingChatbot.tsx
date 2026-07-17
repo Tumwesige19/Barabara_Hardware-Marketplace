@@ -24,9 +24,28 @@ export function FloatingChatbot() {
     const [input, setInput] = useState('');
     const [isTyping, setIsTyping] = useState(false);
     const [isListening, setIsListening] = useState(false);
+    const [voicesList, setVoicesList] = useState<SpeechSynthesisVoice[]>([]);
     
     const messagesEndRef = useRef<HTMLDivElement>(null);
     const recognitionRef = useRef<any>(null);
+
+    // Asynchronously load speech voices (crucial for Chrome/Safari)
+    useEffect(() => {
+        if (typeof window === 'undefined' || !window.speechSynthesis) return;
+
+        const updateVoices = () => {
+            const list = window.speechSynthesis.getVoices();
+            if (list.length > 0) {
+                setVoicesList(list);
+            }
+        };
+
+        updateVoices();
+        
+        if (window.speechSynthesis.onvoiceschanged !== undefined) {
+            window.speechSynthesis.onvoiceschanged = updateVoices;
+        }
+    }, []);
 
     // Auto-scroll to bottom of messages
     useEffect(() => {
@@ -95,7 +114,7 @@ export function FloatingChatbot() {
         const utterance = new SpeechSynthesisUtterance(cleanText);
         
         // Find suitable British English (en-GB) female/lady voice
-        const voices = window.speechSynthesis.getVoices();
+        const voices = voicesList.length > 0 ? voicesList : (typeof window !== 'undefined' && window.speechSynthesis ? window.speechSynthesis.getVoices() : []);
         
         // Keywords corresponding to known British English female voices
         const femaleBritishKeywords = [
@@ -151,8 +170,8 @@ export function FloatingChatbot() {
             utterance.voice = selectedVoice;
         }
 
-        utterance.rate = 0.90; // Slower rate for clear, elegant and polite British tone
-        utterance.pitch = 1.15; // Slightly higher pitch for a premium feminine voice tone
+        utterance.rate = 1.00; // Standard, sharp, clear speaking rate
+        utterance.pitch = 1.25; // Sharp, clear, high-pitched feminine tone
         window.speechSynthesis.speak(utterance);
     };
 
