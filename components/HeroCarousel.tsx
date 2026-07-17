@@ -76,7 +76,7 @@ export function HeroCarousel() {
                                             <span>{product.rating}</span>
                                         </div>
                                     </div>
-                                    <p className="text-[11px] text-slate-400 font-medium line-clamp-2 leading-relaxed">
+                                    <p className="text-[11px] text-slate-600 font-medium line-clamp-2 leading-relaxed">
                                         {product.description}
                                     </p>
                                 </div>

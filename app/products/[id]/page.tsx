@@ -114,7 +114,7 @@ export default function ProductDetailPage() {
                         </p>
                     )}
 
-                    <div className="prose prose-sm text-muted-foreground mb-8">
+                    <div className="prose prose-sm text-slate-700 mb-8">
                         <p>{product.description}</p>
                     </div>
 

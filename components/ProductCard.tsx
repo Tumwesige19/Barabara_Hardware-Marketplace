@@ -39,7 +39,7 @@ export function ProductCard({ product }: { product: Product }) {
                             {product.name}
                         </h3>
                     </Link>
-                    <p className="mt-1 text-xs text-slate-400 font-medium line-clamp-2 leading-relaxed">
+                    <p className="mt-1 text-xs text-slate-600 font-medium line-clamp-2 leading-relaxed">
                         {product.description}
                     </p>
                 </div>
