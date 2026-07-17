@@ -8,7 +8,7 @@ export async function middleware(request: NextRequest) {
     // Read the JWT token directly — works on Edge runtime
     const token = await getToken({
         req: request,
-        secret: process.env.NEXTAUTH_SECRET || process.env.AUTH_SECRET,
+        secret: process.env.AUTH_SECRET || process.env.NEXTAUTH_SECRET,
     });
 
     // If already signed in as admin and visiting the login page → skip to dashboard
