@@ -1,17 +1,24 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { signIn } from 'next-auth/react';
-import { useRouter } from 'next/navigation';
+import { useRouter, useSearchParams } from 'next/navigation';
 import { Shield, Eye, EyeOff, Lock, Mail, AlertTriangle } from 'lucide-react';
 
 export default function AdminLoginPage() {
     const router = useRouter();
+    const searchParams = useSearchParams();
     const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
     const [showPassword, setShowPassword] = useState(false);
     const [error, setError] = useState('');
     const [loading, setLoading] = useState(false);
+
+    // Show any error passed via URL (e.g. from middleware access denied)
+    useEffect(() => {
+        const urlError = searchParams.get('error');
+        if (urlError) setError(urlError);
+    }, [searchParams]);
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
