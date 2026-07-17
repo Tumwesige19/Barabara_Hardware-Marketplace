@@ -5,30 +5,38 @@ import { auth } from '@/lib/auth-config';
 export async function middleware(request: NextRequest) {
     const { pathname } = request.nextUrl;
 
-    // Only guard /admin routes
+    // Allow /admin/login through — it's the gate itself, not behind it
+    if (pathname === '/admin/login') {
+        // If already logged in as admin, skip the login page and go straight to dashboard
+        const session = await auth();
+        if (session?.user?.role === 'admin') {
+            return NextResponse.redirect(new URL('/admin', request.url));
+        }
+        return NextResponse.next();
+    }
+
+    // Guard all other /admin routes
     if (pathname.startsWith('/admin')) {
         const session = await auth();
 
-        // Not logged in at all → redirect to login with a return URL
+        // Not logged in → redirect to dedicated admin login page
         if (!session || !session.user) {
-            const loginUrl = new URL('/login', request.url);
-            loginUrl.searchParams.set('callbackUrl', pathname);
-            loginUrl.searchParams.set('error', 'Please sign in to access the admin portal.');
-            return NextResponse.redirect(loginUrl);
+            const adminLoginUrl = new URL('/admin/login', request.url);
+            return NextResponse.redirect(adminLoginUrl);
         }
 
-        // Logged in but not an admin → redirect to home with error
+        // Logged in but not an admin → redirect to admin login with error
         if (session.user.role !== 'admin') {
-            const homeUrl = new URL('/', request.url);
-            homeUrl.searchParams.set('error', 'Access denied. Admin privileges required.');
-            return NextResponse.redirect(homeUrl);
+            const adminLoginUrl = new URL('/admin/login', request.url);
+            adminLoginUrl.searchParams.set('error', 'Access denied. Admin privileges required.');
+            return NextResponse.redirect(adminLoginUrl);
         }
     }
 
     return NextResponse.next();
 }
 
-// Only run this middleware on /admin routes
+// Run on all /admin routes including /admin/login
 export const config = {
     matcher: ['/admin', '/admin/:path*'],
 };

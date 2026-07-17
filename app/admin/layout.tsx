@@ -12,11 +12,11 @@ export default async function AdminLayout({
     const session = await auth();
 
     if (!session?.user) {
-        redirect('/login?callbackUrl=/admin');
+        redirect('/admin/login');
     }
 
     if (session.user.role !== 'admin') {
-        redirect('/?error=Access+denied.+Admin+privileges+required.');
+        redirect('/admin/login?error=Access+denied.+Admin+privileges+required.');
     }
 
     return (
