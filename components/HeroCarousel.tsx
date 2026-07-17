@@ -1,94 +1,104 @@
 'use client';
 
-import { useState, useEffect } from 'react';
-import { ChevronLeft, ChevronRight } from 'lucide-react';
 import Link from 'next/link';
-
-const banners = [
-    {
-        id: 1,
-        image: 'https://images.unsplash.com/photo-1504148455328-c376907d081c?auto=format&fit=crop&q=80&w=1200',
-        title: 'Trade-in Event',
-        subtitle: 'Upgrade your toolkit today',
-        link: '/products',
-    },
-    {
-        id: 2,
-        image: 'https://images.unsplash.com/photo-1581244277943-fe4a9c777189?auto=format&fit=crop&q=80&w=1200',
-        title: 'Professional Plumbing',
-        subtitle: 'Essentials for every job',
-        link: '/products?category=plumbing',
-    },
-    {
-        id: 3,
-        image: 'https://images.unsplash.com/photo-1558346490-a72e53ae2d4f?auto=format&fit=crop&q=80&w=1200',
-        title: 'Electrical Supplies',
-        subtitle: 'Power up your projects',
-        link: '/products?category=electrical',
-    },
-];
+import { ShoppingCart, Star, ShieldCheck, Sparkles, Award } from 'lucide-react';
+import { products } from '@/lib/data';
+import { formatCurrency } from '@/lib/utils';
+import { useCart } from '@/context/CartContext';
+import { toast } from 'sonner';
 
 export function HeroCarousel() {
-    const [current, setCurrent] = useState(0);
+    const { addToCart } = useCart();
+    
+    // Fetch three distinct products to showcase the range of what we have
+    const showcaseProducts = [
+        products.find(p => p.id === 'dl-002'), // Smart Lock
+        products.find(p => p.id === 'dl-013'), // Mortise Lock
+        products.find(p => p.id === 'dl-022'), // Handle Lock
+    ].filter(Boolean) as typeof products;
 
-    useEffect(() => {
-        const timer = setInterval(() => {
-            setCurrent((prev) => (prev + 1) % banners.length);
-        }, 5000);
-        return () => clearInterval(timer);
-    }, []);
-
-    const prev = () => setCurrent((curr) => (curr === 0 ? banners.length - 1 : curr - 1));
-    const next = () => setCurrent((curr) => (curr + 1) % banners.length);
+    const handleAddToCart = (product: typeof products[0]) => {
+        addToCart(product);
+        toast.success(`Added ${product.name} to cart`);
+    };
 
     return (
-        <div className="relative w-full h-[300px] md:h-[400px] lg:h-[500px] overflow-hidden bg-gray-900">
-            {/* Slides */}
-            <div className="relative h-full w-full">
-                {banners.map((banner, index) => (
-                    <div
-                        key={banner.id}
-                        className={`absolute inset-0 transition-opacity duration-500 ease-in-out ${index === current ? 'opacity-100' : 'opacity-0'
-                            }`}
-                    >
-                        {/* Image Background */}
-                        <div
-                            className="absolute inset-0 bg-cover bg-center"
-                            style={{ backgroundImage: `url(${banner.image})` }}
-                        />
-                        {/* Gradient Overlay - Bottom Fade */}
-                        <div className="absolute inset-0 bg-gradient-to-t from-[#e3e6e6] via-transparent to-transparent" />
+        <div className="relative py-12 md:py-16 bg-slate-50 border-b border-slate-100 overflow-hidden">
+            {/* Design accents: ambient glows */}
+            <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[700px] h-[550px] bg-orange-500/5 rounded-full blur-[140px] pointer-events-none"></div>
+            <div className="absolute top-1/4 left-1/4 -translate-x-1/2 -translate-y-1/2 w-[400px] h-[400px] bg-amber-500/5 rounded-full blur-[120px] pointer-events-none"></div>
 
-                        {/* Content */}
-                        <div className="absolute inset-0 flex items-center justify-center pb-12">
-                            <div className="text-center text-white drop-shadow-lg px-4">
-                                <h2 className="text-4xl md:text-6xl font-bold mb-4">{banner.title}</h2>
-                                <p className="text-xl md:text-2xl mb-8">{banner.subtitle}</p>
-                                <Link
-                                    href={banner.link}
-                                    className="inline-block bg-[#febd69] text-slate-900 px-8 py-3 rounded-md font-bold hover:bg-[#f3a847] transition-colors"
-                                >
-                                    Shop Now
-                                </Link>
+            <div className="container mx-auto max-w-7xl px-6 relative z-10">
+                
+                {/* Visual Showroom Header */}
+                <div className="text-center max-w-3xl mx-auto mb-10 animate-fade-in">
+                    <div className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-orange-500/10 text-orange-600 text-xs font-bold uppercase tracking-wider mb-4">
+                        <Sparkles className="h-3.5 w-3.5" />
+                        <span>Bespoke Hardware Showroom</span>
+                    </div>
+                    
+                    <h1 className="text-3xl md:text-5xl font-black text-slate-900 tracking-tight leading-tight mb-3">
+                        Architectural Hardware. <span className="bg-gradient-to-r from-orange-500 to-amber-500 bg-clip-text text-transparent">Precision Showcased.</span>
+                    </h1>
+                    
+                    <p className="text-xs md:text-sm text-slate-500 font-medium max-w-xl mx-auto leading-relaxed">
+                        Meticulously crafted locks, hand-finished copper handles, and biometric security. See what we have got below.
+                    </p>
+                </div>
+
+                {/* Multi-Product Showroom Deck */}
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-6 max-w-6xl mx-auto animate-fade-in">
+                    {showcaseProducts.map((product) => (
+                        <div key={product.id} className="bento-card bg-white border border-slate-200/60 p-4 shadow-xl overflow-hidden group flex flex-col justify-between">
+                            {/* Product preview */}
+                            <div className="aspect-square w-full rounded-xl overflow-hidden bg-slate-50 border border-slate-100 relative mb-4">
+                                <img
+                                    src={product.image}
+                                    alt={product.name}
+                                    className="h-full w-full object-cover transition-transform duration-700 group-hover:scale-105"
+                                />
+                                
+                                <span className="absolute top-2 right-2 px-2.5 py-0.5 bg-slate-950/85 backdrop-blur text-white text-[8px] font-bold rounded-full border border-white/5 uppercase tracking-widest flex items-center gap-0.5">
+                                    <Award className="h-2.5 w-2.5 text-orange-500" />
+                                    {product.category.replace('-', ' ')}
+                                </span>
+                            </div>
+
+                            {/* Info */}
+                            <div className="flex-1 flex flex-col justify-between">
+                                <div className="mb-3">
+                                    <div className="flex items-start justify-between gap-1 mb-1">
+                                        <h3 className="text-xs font-black text-slate-800 group-hover:text-orange-500 transition-colors tracking-tight line-clamp-1">
+                                            {product.name}
+                                        </h3>
+                                        <div className="flex items-center gap-0.5 text-[10px] text-amber-500 font-bold shrink-0">
+                                            <Star className="h-2.5 w-2.5 fill-current" />
+                                            <span>{product.rating}</span>
+                                        </div>
+                                    </div>
+                                    <p className="text-[11px] text-slate-400 font-medium line-clamp-2 leading-relaxed">
+                                        {product.description}
+                                    </p>
+                                </div>
+
+                                <div className="flex items-center justify-between pt-3 border-t border-slate-100 gap-2 mt-auto">
+                                    <span className="text-sm font-black text-orange-500">
+                                        {formatCurrency(product.price)}
+                                    </span>
+                                    <button
+                                        onClick={() => handleAddToCart(product)}
+                                        className="px-3 py-2 bg-slate-900 hover:bg-orange-500 text-white font-bold text-[10px] rounded-lg transition-all shadow hover:shadow-orange-500/10 hover:scale-105 active:scale-95 shrink-0 flex items-center gap-1 cursor-pointer"
+                                    >
+                                        <ShoppingCart className="h-3 w-3" />
+                                        <span>Add to Cart</span>
+                                    </button>
+                                </div>
                             </div>
                         </div>
-                    </div>
-                ))}
-            </div>
+                    ))}
+                </div>
 
-            {/* Navigation Buttons */}
-            <button
-                onClick={prev}
-                className="absolute left-4 top-1/4 -translate-y-1/2 p-2 hover:bg-white/20 rounded-md transition-colors focus:outline-none focus:ring-2 focus:ring-white"
-            >
-                <ChevronLeft className="h-8 w-8 text-white" />
-            </button>
-            <button
-                onClick={next}
-                className="absolute right-4 top-1/4 -translate-y-1/2 p-2 hover:bg-white/20 rounded-md transition-colors focus:outline-none focus:ring-2 focus:ring-white"
-            >
-                <ChevronRight className="h-8 w-8 text-white" />
-            </button>
+            </div>
         </div>
     );
 }

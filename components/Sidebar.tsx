@@ -42,9 +42,9 @@ export function Sidebar({ isOpen, onClose }: SidebarProps) {
                     }`}
             >
                 {/* Header */}
-                <div className="bg-[#232f3e] text-white px-8 py-3 flex items-center gap-3">
-                    <User className="h-8 w-8 rounded-full bg-white text-[#232f3e] p-1" />
-                    <span className="text-xl font-bold">Hello, Sign in</span>
+                <div className="bg-slate-950 text-white px-8 py-4 flex items-center gap-3 border-b border-slate-800">
+                    <User className="h-8 w-8 rounded-full bg-white text-slate-900 p-1" />
+                    <span className="text-lg font-extrabold tracking-tight">Hello, Sign in</span>
                 </div>
 
                 {/* Content */}

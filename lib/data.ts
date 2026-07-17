@@ -24,28 +24,19 @@ export type Product = {
 
 export const categories: Category[] = [
     { id: '6', name: 'Door Locks', slug: 'door-locks', description: 'Secure your home with premium door locks.' },
+    { id: '7', name: 'Pipe Locks', slug: 'pipe-locks', description: 'Heavy-duty security locks designed for 80mm gate frame pipes.' },
 ];
 
 // Installation Video URLs
-const smartLockVideo = 'https://www.youtube.com/embed/dQw4w9WgXcQ'; // Smart Lock Installation Guide
-const mortiseLockVideo = 'https://www.youtube.com/embed/dQw4w9WgXcQ'; // Mortise Lock Installation Tutorial
-const handleLockVideo = 'https://www.youtube.com/embed/dQw4w9WgXcQ'; // Door Handle Lock Installation
-const deadboltVideo = 'https://www.youtube.com/embed/dQw4w9WgXcQ'; // Deadbolt Installation Guide
-const padlockVideo = 'https://www.youtube.com/embed/dQw4w9WgXcQ'; // Padlock Usage Guide
+const smartLockVideo = 'https://www.youtube.com/embed/N-02Wfs2sE4'; // Home Depot Smart Lock Installation Guide
+const mortiseLockVideo = 'https://www.youtube.com/embed/kYJv8y6_D64'; // Tradco Mortise Lock Installation Tutorial
+const handleLockVideo = 'https://www.youtube.com/embed/gU9G4lY8b-8'; // Door Handle Lock Installation
+const deadboltVideo = 'https://www.youtube.com/embed/3qM_xYkQp9M'; // Deadbolt Installation Guide
+const padlockVideo = 'https://www.youtube.com/embed/aJkX215_cso'; // Biometric Smart Padlock Setup & Usage Guide
 
 export const products: Product[] = [
     // --- Door Locks (50+ Items) ---
     // 1. Smart Locks
-    {
-        id: 'dl-001',
-        name: 'Titan Biometric Smart Lock',
-        description: 'Advanced fingerprint recognition technology with mobile app integration. Features anti-peep password, temporary access codes, and low battery alerts. Perfect for modern homes and offices requiring keyless entry.',
-        price: 450000, wholesalePrice: 4000000, wholesaleMinQty: 10, currency: 'UGX', category: 'door-locks',
-        image: '/Images/Door Locks/smart-lock.png',
-        rating: 4.9, stock: 50, videoUrl: smartLockVideo,
-        specifications: { 'Type': 'Biometric', 'Material': 'Zinc Alloy', 'Color': 'Black', 'Power': '4x AA Batteries' },
-        usageInstructions: ['Install 4 AA batteries in the lock', 'Download the companion mobile app', 'Follow app instructions to pair lock via Bluetooth', 'Register admin fingerprint (place finger 5-6 times)', 'Add additional user fingerprints as needed', 'Test lock/unlock with registered fingerprints']
-    },
     {
         id: 'dl-002',
         name: 'SecureHome WiFi Lock',
@@ -139,26 +130,6 @@ export const products: Product[] = [
 
     // 2. Mortise Locks
     {
-        id: 'dl-011',
-        name: 'Heavy Duty Mortise Lock',
-        description: 'Professional-grade mortise lock with anti-drill plates and hardened steel deadbolt. Suitable for main entrance doors in residential and commercial properties. Includes 5 keys.',
-        price: 150000, wholesalePrice: 1200000, wholesaleMinQty: 10, currency: 'UGX', category: 'door-locks',
-        image: '/Images/Door Locks/mortise-lock.png',
-        rating: 4.9, stock: 500, videoUrl: mortiseLockVideo,
-        specifications: { 'Material': 'Stainless Steel', 'Finish': 'Satin Nickel', 'Backset': '60mm', 'Faceplate': '240mm' },
-        usageInstructions: ['Mark lock position on door edge', 'Drill mortise pocket using template', 'Chisel out cavity for lock body', 'Insert mortise lock', 'Drill holes for cylinder and handles', 'Install faceplate, cylinder, and handles', 'Install strike plate on door frame', 'Test operation with all keys']
-    },
-    {
-        id: 'dl-012',
-        name: 'Antique Brass Mortise',
-        description: 'Vintage-style brass mortise lock with ornate faceplate. Perfect for period homes, heritage buildings, and classic interior design. Hand-finished antique patina.',
-        price: 180000, wholesalePrice: 1500000, wholesaleMinQty: 10, currency: 'UGX', category: 'door-locks',
-        image: '/Images/Door Locks/antique-lock.png',
-        rating: 4.8, stock: 100, videoUrl: mortiseLockVideo,
-        specifications: { 'Material': 'Solid Brass', 'Finish': 'Antique Bronze', 'Style': 'Victorian', 'Backset': '57mm' },
-        usageInstructions: ['Prepare mortise cavity in door', 'Insert lock body carefully', 'Attach decorative faceplate', 'Install brass cylinder', 'Mount antique handles/knobs', 'Polish brass components', 'Install ornate strike plate', 'Apply brass polish for maintenance']
-    },
-    {
         id: 'dl-013',
         name: 'Modern Black Mortise',
         description: 'Contemporary matte black finish mortise lock for modern architectural designs. Minimalist aesthetic with robust security features. Corrosion-resistant coating.',
@@ -240,16 +211,6 @@ export const products: Product[] = [
     },
 
     // 3. Handle Locks (Lever/Knob)
-    {
-        id: 'dl-021',
-        name: 'Minimalist Copper Handle',
-        description: 'Modern brushed copper finish lever handle with clean lines. Ergonomic design with comfortable grip. Antimicrobial copper properties naturally reduce bacteria.',
-        price: 120000, wholesalePrice: 1000000, wholesaleMinQty: 10, currency: 'UGX', category: 'door-locks',
-        image: '/Images/Door Locks/minimalist-lock.png',
-        rating: 4.6, stock: 200, videoUrl: handleLockVideo,
-        specifications: { 'Material': 'Zinc Alloy', 'Finish': 'Brushed Copper', 'Style': 'Contemporary', 'Rosette': 'Round' },
-        usageInstructions: ['Drill 54mm hole through door', 'Drill 25mm latch hole in door edge', 'Insert tubular latch', 'Install copper handles on both sides', 'Tighten mounting screws', 'Test handle return spring', 'Install strike plate on frame']
-    },
     {
         id: 'dl-022',
         name: 'Stainless Steel Lever',
@@ -563,5 +524,65 @@ export const products: Product[] = [
         rating: 4.7, stock: 1000, videoUrl: deadboltVideo,
         specifications: { 'Viewing Angle': '200 Degrees', 'Door Thickness': '35-55mm', 'Lens': 'Glass', 'Finish': 'Gold/Chrome' },
         usageInstructions: ['Mark viewer position at eye level (1.5m)', 'Drill 12mm hole through door', 'Insert viewer from exterior', 'Screw in eyepiece from interior', 'Test viewing angle', 'Ensure clear view']
+    },
+    {
+        id: 'dl-060',
+        name: 'Electric Smart Handle (Front & Back)',
+        description: 'Dual-sided smart door handle featuring secure biometric fingerprint sensor and backup mechanical key entry. Price is UGX 500,000 for the front and back side complete set.',
+        price: 500000, wholesalePrice: 4500000, wholesaleMinQty: 10, currency: 'UGX', category: 'door-locks',
+        image: '/Locks/Electric handles/UGX 500,000 front side.jpeg',
+        rating: 4.8, stock: 35, videoUrl: smartLockVideo,
+        specifications: { 'Type': 'Biometric Smart Handle', 'Material': 'Zinc Alloy', 'Finish': 'Matte Black', 'Price': 'UGX 500,000 complete' },
+        usageInstructions: ['Mount the front-facing smart handle', 'Install the matching back-side handle set', 'Insert batteries and register fingerprints', 'Configure security settings via the panel']
+    },
+    {
+        id: 'dl-061',
+        name: 'Premium Biometric Handle Lock',
+        description: 'High-end premium electric handle lock featuring fingerprint access, digital PIN keypad, and card reader. Crafted for modern security.',
+        price: 700000, wholesalePrice: 6500000, wholesaleMinQty: 10, currency: 'UGX', category: 'door-locks',
+        image: '/Locks/Electric handles/this is UGX 700,000 .jpeg',
+        rating: 4.9, stock: 25, videoUrl: smartLockVideo,
+        specifications: { 'Type': 'Premium Electric Lock', 'Material': 'Tempered Glass & Alloy', 'Access': 'Fingerprint, PIN, Card', 'Price': 'UGX 700,000' },
+        usageInstructions: ['Connect internal wire harness', 'Secure lock template on door', 'Program admin card and codes', 'Register user fingerprints']
+    },
+    {
+        id: 'dl-062',
+        name: 'Classic 80mm Door Pipe Lock',
+        description: 'Heavy-duty pipe lock designed to fit 80mm gate frames and door pipes. Robust and durable construction for high perimeter security.',
+        price: 35000, wholesalePrice: 300000, wholesaleMinQty: 10, currency: 'UGX', category: 'pipe-locks',
+        image: '/Locks/Enter a door pipe of 80mm each at UGX 35000/1.jpeg',
+        rating: 4.5, stock: 150, videoUrl: padlockVideo,
+        specifications: { 'Type': 'Gate Pipe Lock', 'Pipe Width': '80mm', 'Material': 'Tempered Steel', 'Price': 'UGX 35,000 each' },
+        usageInstructions: ['Slide lock body inside the 80mm pipe frame slot', 'Align keyhole access points', 'Secure with retention screws', 'Test smooth cylinder locking']
+    },
+    {
+        id: 'dl-063',
+        name: 'Innerlee 80mm Pipe Lock',
+        description: 'Precision-crafted Innerlee security lock designed to fit 80mm door pipe frames. Reliable latch mechanism with brass core keys.',
+        price: 35000, wholesalePrice: 300000, wholesaleMinQty: 10, currency: 'UGX', category: 'pipe-locks',
+        image: '/Locks/Enter a door pipe of 80mm each at UGX 35000/Innerlee Locks enter 80mm pipe/1.jpeg',
+        rating: 4.6, stock: 120, videoUrl: padlockVideo,
+        specifications: { 'Brand': 'Innerlee', 'Type': '80mm Pipe Lock', 'Key Type': 'Brass Core', 'Price': 'UGX 35,000' },
+        usageInstructions: ['Align Innerlee lock with frame guide', 'Secure cylinder core in position', 'Insert keys and test lock rotation']
+    },
+    {
+        id: 'dl-064',
+        name: 'Compact 80mm Pipe Lock',
+        description: 'Shorter profile security pipe lock built to fit 80mm door profiles. Designed for tight installations requiring heavy duty security.',
+        price: 35000, wholesalePrice: 300000, wholesaleMinQty: 10, currency: 'UGX', category: 'pipe-locks',
+        image: '/Locks/Enter a door pipe of 80mm each at UGX 35000/shorter but enter 80mm pipe/1.jpeg',
+        rating: 4.4, stock: 140, videoUrl: padlockVideo,
+        specifications: { 'Type': 'Shorter Pipe Lock', 'Width': '80mm profile', 'Material': 'Iron Latch', 'Price': 'UGX 35,000' },
+        usageInstructions: ['Measure frame cavity depth', 'Insert compact lock housing', 'Screw lockplate tight', 'Test cylinder operation']
+    },
+    {
+        id: 'dl-065',
+        name: 'Bespoke Half Handle Lockset',
+        description: 'Modern minimalist half-handle lever set. Complete lockset is UGX 65,000. Purchase a handle pair separately for UGX 30,000.',
+        price: 65000, wholesalePrice: 600000, wholesaleMinQty: 20, currency: 'UGX', category: 'door-locks',
+        image: '/Locks/Half handles/pair is UGX 30,000 and complete lock is UGX 65000.jpeg',
+        rating: 4.7, stock: 200, videoUrl: handleLockVideo,
+        specifications: { 'Type': 'Half Handle Set', 'Pair Price': 'UGX 30,000', 'Complete Price': 'UGX 65,000', 'Material': 'Satin Steel' },
+        usageInstructions: ['Install tubular latch inside door frame', 'Mount half-handle lever sets on spindle', 'Affix lock cylinders and test']
     }
 ];

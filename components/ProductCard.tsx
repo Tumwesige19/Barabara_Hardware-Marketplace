@@ -24,28 +24,37 @@ export function ProductCard({ product }: { product: Product }) {
     };
 
     return (
-        <div className="group relative overflow-hidden rounded-lg border border-border bg-card shadow-sm transition-all hover:shadow-md">
-            <Link href={`/products/${product.id}`} className="block aspect-square overflow-hidden bg-muted">
+        <div className="group relative overflow-hidden rounded-2xl border border-slate-100 bg-white shadow-sm hover:shadow-xl hover:-translate-y-1 transition-all duration-300 flex flex-col h-full">
+            <Link href={`/products/${product.id}`} className="block aspect-square overflow-hidden bg-slate-50 border-b border-slate-50 relative">
                 <img
                     src={product.image}
                     alt={product.name}
-                    className="h-full w-full object-cover transition-transform duration-300 group-hover:scale-105"
+                    className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-105"
                 />
             </Link>
-            <div className="p-4">
-                <Link href={`/products/${product.id}`}>
-                    <h3 className="text-lg font-semibold text-foreground hover:text-primary line-clamp-1">{product.name}</h3>
-                </Link>
-                <p className="mt-1 text-sm text-muted-foreground line-clamp-2">{product.description}</p>
-                <div className="mt-4 flex items-center justify-between">
-                    <span className="text-xl font-bold text-primary">{formatCurrency(product.price)}</span>
+            <div className="p-4 flex flex-col flex-1 justify-between">
+                <div>
+                    <Link href={`/products/${product.id}`}>
+                        <h3 className="text-sm font-extrabold text-slate-800 group-hover:text-orange-500 transition-colors line-clamp-1 tracking-tight">
+                            {product.name}
+                        </h3>
+                    </Link>
+                    <p className="mt-1 text-xs text-slate-400 font-medium line-clamp-2 leading-relaxed">
+                        {product.description}
+                    </p>
+                </div>
+                
+                <div className="mt-4 pt-3 border-t border-slate-100/60 flex items-center justify-between gap-2">
+                    <span className="text-base font-black text-orange-500">
+                        {formatCurrency(product.price)}
+                    </span>
                     <button
                         onClick={handleAddToCart}
                         disabled={isAdding}
-                        className={`inline-flex items-center justify-center rounded-md bg-primary px-3 py-2 text-sm font-medium text-primary-foreground transition-all hover:bg-primary/90 focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring ${isAdding ? 'opacity-50 scale-95' : ''
+                        className={`inline-flex items-center justify-center rounded-xl bg-slate-900 hover:bg-orange-500 text-white font-bold px-3.5 py-2 text-[11px] transition-all hover:shadow-md hover:shadow-orange-500/10 active:scale-95 cursor-pointer shrink-0 gap-1.5 ${isAdding ? 'bg-orange-500 opacity-60 scale-95' : ''
                             }`}
                     >
-                        <ShoppingCart className="mr-2 h-4 w-4" />
+                        <ShoppingCart className="h-3.5 w-3.5" />
                         {isAdding ? 'Adding...' : 'Add'}
                     </button>
                 </div>
@@ -53,3 +62,4 @@ export function ProductCard({ product }: { product: Product }) {
         </div>
     );
 }
+

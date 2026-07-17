@@ -5,7 +5,7 @@ const testOrder = {
     id: 'ORD-20251123-TEST',
     customerName: 'Test Customer',
     items: JSON.stringify([{
-        productId: 'dl-001',
+        productId: 'dl-002',
         name: 'Test Product',
         price: 100000,
         quantity: 1,

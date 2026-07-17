@@ -13,6 +13,10 @@ interface ProductRowProps {
 export function ProductRow({ title, products }: ProductRowProps) {
     const scrollRef = useRef<HTMLDivElement>(null);
 
+    if (!products || products.length === 0) {
+        return null;
+    }
+
     const scroll = (direction: 'left' | 'right') => {
         if (scrollRef.current) {
             const { current } = scrollRef;
@@ -22,10 +26,13 @@ export function ProductRow({ title, products }: ProductRowProps) {
     };
 
     return (
-        <div className="bg-white p-6 mb-8 mx-4 shadow-sm">
-            <div className="flex items-center justify-between mb-4">
-                <h2 className="text-xl font-bold text-slate-900">{title}</h2>
-                <a href="/products" className="text-[#007185] hover:text-[#c7511f] hover:underline text-sm font-medium">
+        <div className="bg-white border border-slate-100 p-6 mb-8 mx-4 md:mx-6 rounded-2xl shadow-sm">
+            <div className="flex items-center justify-between mb-5">
+                <h2 className="text-lg font-black text-slate-900 tracking-tight">{title}</h2>
+                <a 
+                    href="/products" 
+                    className="px-3.5 py-1.5 rounded-full border border-slate-200 text-xs font-bold text-slate-600 hover:text-orange-500 hover:border-orange-500 hover:bg-slate-50 transition-all"
+                >
                     See more
                 </a>
             </div>
@@ -33,17 +40,17 @@ export function ProductRow({ title, products }: ProductRowProps) {
             <div className="relative group">
                 <button
                     onClick={() => scroll('left')}
-                    className="absolute left-0 top-1/2 -translate-y-1/2 z-10 bg-white/80 p-2 shadow-md rounded-r-md opacity-0 group-hover:opacity-100 transition-opacity disabled:opacity-0"
+                    className="absolute -left-3 top-1/2 -translate-y-1/2 z-10 h-9 w-9 bg-white/90 hover:bg-orange-500 border border-slate-100 hover:border-orange-400 hover:scale-105 text-slate-700 hover:text-white shadow-md rounded-full flex items-center justify-center opacity-0 group-hover:opacity-100 transition-all cursor-pointer"
                 >
-                    <ChevronLeft className="h-6 w-6" />
+                    <ChevronLeft className="h-5 w-5" />
                 </button>
 
                 <div
                     ref={scrollRef}
-                    className="flex gap-4 overflow-x-auto pb-4 no-scrollbar scroll-smooth"
+                    className="flex gap-4 overflow-x-auto pb-2 no-scrollbar scroll-smooth"
                 >
                     {products.map((product) => (
-                        <div key={product.id} className="min-w-[240px] max-w-[240px]">
+                        <div key={product.id} className="min-w-[220px] max-w-[220px] py-1">
                             <ProductCard product={product} />
                         </div>
                     ))}
@@ -51,11 +58,12 @@ export function ProductRow({ title, products }: ProductRowProps) {
 
                 <button
                     onClick={() => scroll('right')}
-                    className="absolute right-0 top-1/2 -translate-y-1/2 z-10 bg-white/80 p-2 shadow-md rounded-l-md opacity-0 group-hover:opacity-100 transition-opacity disabled:opacity-0"
+                    className="absolute -right-3 top-1/2 -translate-y-1/2 z-10 h-9 w-9 bg-white/90 hover:bg-orange-500 border border-slate-100 hover:border-orange-400 hover:scale-105 text-slate-700 hover:text-white shadow-md rounded-full flex items-center justify-center opacity-0 group-hover:opacity-100 transition-all cursor-pointer"
                 >
-                    <ChevronRight className="h-6 w-6" />
+                    <ChevronRight className="h-5 w-5" />
                 </button>
             </div>
         </div>
     );
 }
+

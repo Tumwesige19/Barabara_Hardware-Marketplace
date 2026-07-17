@@ -11,8 +11,8 @@ function generateId() {
 const testOrders = [
     {
         customerName: 'John Doe',
-        items: JSON.stringify([{ id: 'dl-001', name: 'Smart Lock', price: 450000, quantity: 1 }]),
-        total: 450000,
+        items: JSON.stringify([{ id: 'dl-002', name: 'SecureHome WiFi Lock', price: 380000, quantity: 1 }]),
+        total: 380000,
         paymentMethod: 'Mobile Money (MTN)',
         userId: 'user_1',
         phone: '0771234567',

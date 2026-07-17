@@ -6,6 +6,7 @@ import { Footer } from "@/components/Footer";
 import { CartProvider } from "@/context/CartContext";
 import { AuthProvider } from "@/components/AuthProvider";
 import { Toaster } from "sonner";
+import { FloatingChatbot } from "@/components/FloatingChatbot";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -39,6 +40,7 @@ export default function RootLayout({
               {children}
             </main>
             <Toaster />
+            <FloatingChatbot />
             <Footer />
           </CartProvider>
         </AuthProvider>
