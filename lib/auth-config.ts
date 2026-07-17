@@ -1,6 +1,6 @@
 import NextAuth from "next-auth";
 import CredentialsProvider from "next-auth/providers/credentials";
-import { getUserByEmail } from "@/app/actions/auth";
+import db from "@/lib/db";
 import { verifyPassword } from "@/lib/auth";
 
 export const { handlers, signIn, signOut, auth } = NextAuth({
@@ -16,7 +16,7 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
                     return null;
                 }
 
-                const user = await getUserByEmail(credentials.email as string);
+                const user = await db.findUserByEmail(credentials.email as string);
 
                 if (!user) {
                     return null;
